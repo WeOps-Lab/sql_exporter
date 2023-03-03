@@ -65,9 +65,7 @@ pipeline {
             steps {
                 withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
                     dir('weops/pipe-tools/exporter') {
-                    sh 'kubectl replace --force -f cluster.yaml -n redis'
-                    sh 'kubectl replace --force -f sentinel.yaml -n redis'
-                    sh 'kubectl replace --force -f ./standalone -n redis'
+                        sh 'kubectl replace --force -f ./standalone -n mssql'
                     }
                 }
             }
@@ -77,7 +75,7 @@ pipeline {
             steps {
                 withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
                     dir('weops/pipe-tools/chaos') {
-                    sh 'kubectl apply -f ./ -n redis'
+                    sh 'kubectl apply -f ./ -n mssql'
                     }
                 }
             }
