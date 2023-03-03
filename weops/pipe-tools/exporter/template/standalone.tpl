@@ -53,9 +53,6 @@ spec:
     spec:
       shareProcessNamespace: true
       volumes:
-        - name: mssql-config
-          configMap:
-            name: mssql-config
         - name: mssql-collector
           configMap:
             name: mssql-collector
@@ -67,11 +64,9 @@ spec:
           allowPrivilegeEscalation: false
           runAsUser: 0
         args:
-          - --config.file=/sql/sql_config.yaml
-          - --config.data-source-name='sqlserver://SA:Weops123!@mssqlserver-{{VERSION}}.mssql:1433'
+          - --config.file=/collector/sql_config.yaml
+          - --config.data-source-name=sqlserver://SA:Weops123!@mssqlserver-{{VERSION}}.mssql:1433
         volumeMounts:
-        - mountPath: /sql
-          name: mssql-config
         - mountPath: /collector
           name: mssql-collector
         resources:

@@ -31,7 +31,7 @@ data:
     # Collector files specifies a list of globs. One collector definition is read from each matching file.
     # Glob patterns are supported (see <https://pkg.go.dev/path/filepath#Match> for syntax).
     collector_files:
-      - "*.collector.yml"
+      - "/collector/*.collector.yaml"
 
   mssql.collector.yaml: |-
     collector_name: mssql_standard
