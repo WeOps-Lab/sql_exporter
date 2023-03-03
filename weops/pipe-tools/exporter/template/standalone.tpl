@@ -67,8 +67,8 @@ spec:
           allowPrivilegeEscalation: false
           runAsUser: 0
         args:
-          - -config.file /sql/sql_config.yaml
-          - -config.data-source-name 'sqlserver://SA:Weops123!@mssqlserver-{{VERSION}}.mssql:1433'
+          - --config.file=/sql/sql_config.yaml
+          - --config.data-source-name='sqlserver://SA:Weops123!@mssqlserver-{{VERSION}}.mssql:1433'
         volumeMounts:
         - mountPath: /sql/sql_config.yaml
           name: mssql-config
