@@ -48,7 +48,7 @@ spec:
         app: mssql-exporter-standalone-{{VERSION}}
         exporter_object: mssql
         object_mode: standalone
-        object_version: {{VERSION}}
+        object_version: '{{VERSION}}'
         pod_type: exporter
     spec:
       shareProcessNamespace: true
