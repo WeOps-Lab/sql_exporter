@@ -65,6 +65,8 @@ pipeline {
             steps {
                 withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
                     dir('weops/pipe-tools/exporter') {
+                        sh 'kubectl replace --force -f ./mssql_collector_configMap.yaml -n mssql'
+                        sh 'kubectl replace --force -f ./sql_configMap.yaml -n mssql'
                         sh 'kubectl replace --force -f ./standalone -n mssql'
                     }
                 }
