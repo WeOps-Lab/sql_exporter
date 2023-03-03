@@ -1,0 +1,86 @@
+pipeline {
+    agent {
+        node('chaos')
+    }
+
+    parameters {
+       string(name: 'BranchName', defaultValue: 'dev', description: null)
+       string(name: 'GitTag', defaultValue: 'v1.0.0', description: null)
+       string(name: 'BuildPath', defaultValue: 'weops/pipe-tools/bin', description: 'The path to build binaries')
+    }
+
+    environment {
+       PATH = "/data/go/bin:${env.PATH}"
+    }
+
+    stages {
+        stage('拉取代码') {
+            steps {
+                git url: 'https://proxy.zyun.vip/https://github.com/WeOps-Lab/sql_exporter', branch: "weops/${env.BranchName}"
+            }
+        }
+
+        stage('重新部署监控对象') {
+            steps {
+                dir('weops/pipe-tools/charts') {
+                    sh 'bash helm_uninstall.sh'
+                    sleep 3
+                    sh 'bash helm_install.sh'
+                }
+            }
+        }
+
+        stage('编译探针'){
+            steps {
+                sh 'go env -w GOPROXY=https://goproxy.cn'
+                sh "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${env.BuildPath}/sql_exporter main.go"
+                sh "CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ${env.BuildPath}/sql_exporter.exe main.go"
+                sh "CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o ${env.BuildPath}/sql_exporter_arm64 main.go"
+            }
+        }
+
+        stage('构建镜像') {
+            steps {
+                dir("${env.BuildPath}") {
+                    sh 'docker build -f ../docker/Dockerfile -t registry-svc:25000/library/sql-exporter:latest .'
+                }
+            }
+        }
+
+        stage('推送镜像') {
+            steps {
+                sh 'docker push registry-svc:25000/library/sql-exporter:latest'
+            }
+        }
+
+        stage('生成部署文件') {
+            steps {
+                dir('weops/pipe-tools/exporter/template') {
+                    sh 'bash build.sh'
+                }
+            }
+        }
+
+        stage('部署探针'){
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
+                    dir('weops/pipe-tools/exporter') {
+                    sh 'kubectl replace --force -f cluster.yaml -n redis'
+                    sh 'kubectl replace --force -f sentinel.yaml -n redis'
+                    sh 'kubectl replace --force -f ./standalone -n redis'
+                    }
+                }
+            }
+        }
+
+        stage('部署混沌工程'){
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
+                    dir('weops/pipe-tools/chaos') {
+                    sh 'kubectl apply -f ./ -n redis'
+                    }
+                }
+            }
+        }
+    }
+}
