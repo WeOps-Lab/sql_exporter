@@ -32,13 +32,10 @@ pipeline {
 
         stage('编译探针'){
             steps {
-                sh 'go env -w GOPROXY=https://goproxy.cn'
-                sh "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${env.BuildPath}/sql_exporter"
-                sh "chmod +x ${env.BuildPath}/sql_exporter"
-                sh "CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ${env.BuildPath}/sql_exporter.exe"
-                sh "chmod +x ${env.BuildPath}/sql_exporter.exe"
-                sh "CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o ${env.BuildPath}/sql_exporter_arm64"
-                sh "chmod +x ${env.BuildPath}/sql_exporter_arm64"
+                sh "make build GOPROXY=https://goproxy.cn GOOS=linux GOARCH=amd64 PREFIX=${env.BuildPath}"
+                sh "make build GOPROXY=https://goproxy.cn GOOS=windows GOARCH=amd64 PREFIX=${env.BuildPath}"
+                sh "make build GOPROXY=https://goproxy.cn GOOS=linux GOARCH=arm64 PREFIX=${env.BuildPath}/arm"
+                sh "cp ${env.BuildPath}/arm/sql_exporter ${env.BuildPath}/sql_exporter_arm64"
             }
         }
 
