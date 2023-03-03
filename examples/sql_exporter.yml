@@ -18,8 +18,19 @@ global:
 target:
   # Data source name always has a URI schema that matches the driver name. In some cases (e.g. MySQL)
   # the schema gets dropped or replaced to match the driver expected DSN format.
-  data_source_name: 'sqlserver://prom_user:prom_password@dbserver1.example.com:1433'
+  data_source_name: 'sqlserver://SA:Fzming123456@10.11.25.200:1433'
 
+#jobs:
+#  - job_name: test1
+#    collectors: [mssql_standard]
+#    static_configs:
+#      - targets:
+#          mysql1: 'sqlserver://SA:Fzming123456@10.11.25.200:1433'
+#  - job_name: test2
+#    collectors: [mssql_standard]
+#    static_configs:
+#      - targets:
+#          mysql2: 'sqlserver://SA:Fzming123456@10.11.25.200:1434'
   # Collectors (referenced by name) to execute on the target.
   # Glob patterns are supported (see <https://pkg.go.dev/path/filepath#Match> for syntax).
   collectors: [mssql_*]
