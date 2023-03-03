@@ -70,9 +70,9 @@ spec:
           - --config.file=/sql/sql_config.yaml
           - --config.data-source-name='sqlserver://SA:Weops123!@mssqlserver-{{VERSION}}.mssql:1433'
         volumeMounts:
-        - mountPath: /sql/sql_config.yaml
+        - mountPath: /sql
           name: mssql-config
-        - mountPath: /sql/mssql.collector.yaml
+        - mountPath: /collector
           name: mssql-collector
         resources:
           requests:
@@ -82,7 +82,7 @@ spec:
             cpu: 300m
             memory: 300Mi
         ports:
-        - containerPort: 9121
+        - containerPort: 9399
 
 ---
 apiVersion: v1
@@ -94,12 +94,12 @@ metadata:
   namespace: mssql
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "9121"
+    prometheus.io/port: "9399"
     prometheus.io/path: '/metrics'
 spec:
   ports:
-  - port: 9121
+  - port: 9399
     protocol: TCP
-    targetPort: 9121
+    targetPort: 9399
   selector:
     app: mssql-exporter-standalone-{{VERSION}}
