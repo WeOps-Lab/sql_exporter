@@ -52,6 +52,13 @@ spec:
         pod_type: exporter
     spec:
       shareProcessNamespace: true
+      volumes:
+        - name: mssql-config
+          configMap:
+            name: mssql-config
+        - name: mssql-collector
+          configMap:
+            name: mssql-collector
       containers:
       - name: mssql-exporter-standalone-{{VERSION}}
         image: registry-svc:25000/library/mssql-exporter:latest
@@ -67,14 +74,6 @@ spec:
           name: mssql-config
         - mountPath: /sql/mssql.collector.yaml
           name:mssql-collector
-      volumes:
-      - configMap:
-          defaultMode: 420
-          name: mssql-config
-        name: mssql-config
-      - configMap:
-          defaultMode: 420
-          name: mssql-collector
         name: mssql-collector
         resources:
           requests:
