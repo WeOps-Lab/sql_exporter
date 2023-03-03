@@ -65,7 +65,6 @@ spec:
           runAsUser: 0
         args:
           - --config.file=/collector/sql_config.yaml
-          - --config.data-source-name=sqlserver://SA:Weops123!@mssqlserver-{{VERSION}}.mssql:1433
         volumeMounts:
         - mountPath: /collector
           name: mssql-collector
