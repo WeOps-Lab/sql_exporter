@@ -52,7 +52,7 @@ pipeline {
 
         stage('推送镜像') {
             steps {
-                sh 'docker push registry-svc:25000/library/sql-exporter:latest'
+                sh 'docker push registry-svc:25000/library/mssql-exporter:latest'
             }
         }
 
