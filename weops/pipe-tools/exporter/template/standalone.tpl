@@ -74,7 +74,6 @@ spec:
           name: mssql-config
         - mountPath: /sql/mssql.collector.yaml
           name:mssql-collector
-        name: mssql-collector
         resources:
           requests:
             cpu: 100m
