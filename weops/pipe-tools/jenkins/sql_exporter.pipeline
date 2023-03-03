@@ -34,11 +34,8 @@ pipeline {
             steps {
                 sh 'go env -w GOPROXY=https://goproxy.cn'
                 sh "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${env.BuildPath}/sql_exporter"
-                sh "chmod +x ${env.BuildPath}/sql_exporter"
                 sh "CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ${env.BuildPath}/sql_exporter.exe"
-                sh "chmod +x ${env.BuildPath}/sql_exporter.exe"
                 sh "CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o ${env.BuildPath}/sql_exporter_arm64"
-                sh "chmod +x ${env.BuildPath}/sql_exporter_arm64"
             }
         }
 
