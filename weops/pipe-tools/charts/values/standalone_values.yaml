@@ -1,0 +1,18 @@
+acceptEula:
+  value: "n"
+edition:
+  value: Developer
+
+# Override sapassword in templates/secret.yaml
+sapassword: "Weops123!"
+
+deployment:
+  labels:
+    object: mssql
+persistence:
+  enabled: false
+
+resources:
+  limits:
+  #  cpu: 100m
+    memory: 2Gi
