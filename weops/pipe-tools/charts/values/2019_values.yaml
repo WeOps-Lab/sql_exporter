@@ -8,10 +8,11 @@ sapassword: "Weops123!"
 
 image:
   tag: 2019-latest
-  object_version: "2019"
+
 deployment:
   labels:
     object: mssql
+    object_version: "2019"
 persistence:
   enabled: false
 
