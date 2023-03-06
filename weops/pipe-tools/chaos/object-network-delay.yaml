@@ -14,7 +14,7 @@ spec:
       namespaces:
         - mssql
       labelSelectors:
-        'pod_type': 'exporter'
+        'object': 'mssql'
     mode: all
     action: delay
     duration: 3s
