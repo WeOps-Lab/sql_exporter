@@ -1,11 +1,14 @@
 #!/bin/bash
 
 # 部署监控对象
-helm install mssql2022 --namespace mssql \
---set acceptEula.value=Y \
---set edition.value=Developer \
---set sapassword='Weops123!' \
---set persistence.enabled=false \
---set deployment.labels.object='mssql' \
---set resources.limits.memory='3Gi' \
-./mssqlserver-2022
+object_versions=("2022", "2019", "2017")
+object=mssql
+
+for version in "${object_versions[@]}"; do
+    version_suffix="v$version"
+
+    helm install mssql-$version_suffix --namespace $object -f ./values/standalone_values.yaml \
+    --set image.tag=$version-latest \
+    --set deployment.labels.object_version=$version_suffix \
+    ./mssqlserver-2022
+done
