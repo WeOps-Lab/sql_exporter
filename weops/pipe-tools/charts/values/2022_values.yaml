@@ -12,6 +12,7 @@ image:
 deployment:
   labels:
     object: mssql
+    object_version: "2022"
 persistence:
   enabled: false
 
