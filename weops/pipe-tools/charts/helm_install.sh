@@ -8,7 +8,7 @@ for version in "${object_versions[@]}"; do
     version_suffix="$version"
 
     helm install mssql-$version_suffix --namespace $object -f ./values/standalone_values.yaml \
-    --set image.tag=$version-latest \
+    --set image.tag="$version-latest" \
     --set deployment.labels.object_version=$version_suffix \
     ./mssqlserver-2022
 done
