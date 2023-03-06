@@ -64,7 +64,7 @@ spec:
           allowPrivilegeEscalation: false
           runAsUser: 0
         args:
-          - --config.file=/collector/sql_config.yaml
+          - --config.file=/collector/sql_config_{{VERSION}}.yaml
         volumeMounts:
         - mountPath: /collector
           name: mssql-collector
