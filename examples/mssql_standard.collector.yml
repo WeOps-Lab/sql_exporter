@@ -11,6 +11,128 @@ collector_name: mssql_standard
 #min_interval: 0s
 
 metrics:
+  #
+  # prometheus-mssql-exporter
+  #
+  - metric_name: mssql_up
+    type: gauge
+    help: 'Fetched status of instance.'
+    values: [up]
+    query: |
+      SELECT 1 AS up
+
+  - metric_name: mssql_version
+    type: gauge
+    help: 'Fetched version of instance.'
+    key_labels:
+      - ProductVersion
+    values: [value]
+    query: |
+      SELECT CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) AS ProductVersion, 1 AS value
+
+  - metric_name: mssql_client_connections
+    type: gauge
+    help: 'Number of active client connections.'
+    key_labels:
+      - db
+      - host
+    values:
+      - count
+    query: |
+      SELECT host_name AS host, DB_NAME(dbid) AS db, COUNT(*) AS count
+      FROM sys.dm_exec_sessions a
+      LEFT JOIN sysprocesses b on a.session_id=b.spid
+      WHERE is_user_process=1
+      GROUP BY host_name, dbid
+
+  - metric_name: mssql_database_state
+    type: gauge
+    help: 'Databases states: 0=ONLINE 1=RESTORING 2=RECOVERING 3=RECOVERY_PENDING 4=SUSPECT 5=EMERGENCY 6=OFFLINE 7=COPYING 10=OFFLINE_SECONDARY.'
+    key_labels:
+      - name
+    values:
+      - state
+    query: |
+      SELECT name, state FROM master.sys.databases
+
+  - metric_name: mssql_database_filesize
+    type: gauge
+    help: 'Physical sizes of files used by database in KB, their names and types (0=rows, 1=log, 2=filestream,3=n/a 4=fulltext(before v2008 of MSSQL)).'
+    key_labels:
+      - db
+      - logical_name
+      - type
+      - physical_name
+    values:
+      - size_kb
+    query: |
+      SELECT DB_NAME(database_id) AS db, name AS logical_name, type, physical_name, (size * CAST(8 AS BIGINT)) size_kb FROM sys.master_files
+
+
+  # mssql_buffer_manager
+  - metric_name: mssql_page_reads_sec
+    type: counter
+    help: 'Page reads/sec.'
+    values: [page_reads_sec]
+    query_ref: mssql_buffer_manager
+  - metric_name: mssql_page_write_sec
+    type: counter
+    help: 'Page writes/sec.'
+    values: [page_writes_sec]
+    query_ref: mssql_buffer_manager
+  - metric_name: mssql_page_life_expectancy
+    type: gauge
+    help: 'Indicates the minimum number of seconds a page will stay in the buffer pool on this node without references. The traditional advice from Microsoft used to be that the PLE should remain above 300 seconds.'
+    values: [page_life_expectancy]
+    query_ref: mssql_buffer_manager
+  - metric_name: mssql_lazy_write_sec
+    type: counter
+    help: 'Lazy writes/sec.'
+    values: [lazy_writes_sec]
+    query_ref: mssql_buffer_manager
+  - metric_name: mssql_checkpoint_pages_sec
+    type: counter
+    help: 'Checkpoint pages/sec.'
+    values: [checkpoint_pages_sec]
+    query_ref: mssql_buffer_manager
+
+  - metric_name: mssql_transactions
+    type: gauge
+    help: 'Number of transactions started for the database per second. Transactions/sec does not count XTP-only transactions (transactions started by a natively compiled stored procedure.).'
+    key_labels:
+      - db
+    values:
+      - cntr_value
+    query: |
+      SELECT rtrim(instance_name) AS db, cntr_value
+      FROM sys.dm_os_performance_counters
+      WHERE counter_name = 'Transactions/sec' AND instance_name <> '_Total'
+
+  # mssql_os_sys_memory
+  - metric_name: mssql_total_physical_memory_kb
+    type: gauge
+    help: 'Total physical memory in kilobytes.'
+    values: [total_physical_memory_kb]
+    query_ref: mssql_os_sys_memory
+  - metric_name: mssql_available_physical_memory_kb
+    type: gauge
+    help: 'Available physical memory in kilobytes.'
+    values: [available_physical_memory_kb]
+    query_ref: mssql_os_sys_memory
+  - metric_name: mssql_total_page_file_kb
+    type: gauge
+    help: 'Total page file size in kilobytes.'
+    values: [total_page_file_kb]
+    query_ref: mssql_os_sys_memory
+  - metric_name: mssql_available_page_file_kb
+    type: gauge
+    help: 'Available page file size in kilobytes.'
+    values: [available_page_file_kb]
+    query_ref: mssql_os_sys_memory
+
+  #
+  # sql exporter
+  #
   - metric_name: mssql_local_time_seconds
     type: gauge
     help: 'Local time in seconds since epoch (Unix time).'
@@ -97,14 +219,6 @@ metrics:
       FROM sys.dm_os_performance_counters
       WHERE [counter_name] = 'Buffer cache hit ratio'
 
-  - metric_name: mssql_checkpoint_pages_sec
-    type: gauge
-    help: 'Checkpoint Pages Per Second'
-    values: [cntr_value]
-    query: |
-      SELECT cntr_value
-      FROM sys.dm_os_performance_counters
-      WHERE [counter_name] = 'Checkpoint pages/sec'
 
   #
   # Collected from sys.dm_io_virtual_file_stats
@@ -181,6 +295,10 @@ metrics:
       FROM sys.dm_os_sys_memory
 
 queries:
+  #
+  # sql exporter
+  #
+
   # Populates `mssql_io_stall` and `mssql_io_stall_total`
   - query_name: mssql_io_stall
     query: |
@@ -204,4 +322,35 @@ queries:
         memory_utilization_percentage,
         page_fault_count
       FROM sys.dm_os_process_memory
-      
+
+  #
+  # prometheus-mssql-exporter
+  #
+
+  # Populates `mssql_page_read_total`, `mssql_page_write_total`, `mssql_page_life_expectancy`, `mssql_lazy_write_total`,
+  - query_name: mssql_buffer_manager
+    query: |
+      SELECT
+        [Page reads/sec] AS page_reads_sec,
+        [Page writes/sec] AS page_writes_sec,
+        [Page life expectancy] AS page_life_expectancy,
+        [Lazy writes/sec] AS lazy_writes_sec,
+        [Checkpoint pages/sec] AS checkpoint_pages_sec
+      FROM
+        (
+          SELECT rtrim(counter_name) as counter_name, cntr_value
+          FROM sys.dm_os_performance_counters
+          WHERE counter_name in ('Page reads/sec', 'Page writes/sec', 'Page life expectancy', 'Lazy writes/sec', 'Checkpoint pages/sec')
+          AND object_name = 'SQLServer:Buffer Manager'
+        ) d
+        PIVOT
+        (
+          MAX(cntr_value)
+          FOR counter_name IN ([Page reads/sec], [Page writes/sec], [Page life expectancy], [Lazy writes/sec], [Checkpoint pages/sec])
+        ) piv
+
+  # Populates `mssql_total_physical_memory_kb`, `mssql_available_physical_memory_kb`, `mssql_total_page_file_kb`, `mssql_available_page_file_kb`
+  - query_name: mssql_os_sys_memory
+    query: |
+      SELECT total_physical_memory_kb, available_physical_memory_kb, total_page_file_kb, available_page_file_kb
+      FROM sys.dm_os_sys_memory
