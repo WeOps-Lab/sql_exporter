@@ -6,9 +6,6 @@ edition:
 # Override sapassword in templates/secret.yaml
 sapassword: "Weops123!"
 
-image:
-  tag: 2017-latest
-
 deployment:
   labels:
     object: mssql
