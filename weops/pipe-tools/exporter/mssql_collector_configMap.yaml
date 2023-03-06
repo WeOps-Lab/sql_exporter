@@ -24,7 +24,7 @@ data:
     # The target to monitor and the collectors to execute on it.
     jobs:
       - job_name: mssql
-        collectors: [mssql_]
+        collectors: [mssql_*]
         static_configs:
           - targets:
               mssql2022: 'sqlserver://SA:Weops123!@mssqlserver-2022.mssql:1433'
