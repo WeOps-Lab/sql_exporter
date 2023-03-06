@@ -145,25 +145,25 @@ data:
           WHERE counter_name = 'Transactions/sec' AND instance_name <> '_Total'
 
       # mssql_os_sys_memory
-      - metric_name: mssql_total_physical_memory_kb
+      - metric_name: mssql_total_physical_memory_bytes
         type: gauge
-        help: 'Total physical memory in kilobytes.'
-        values: [total_physical_memory_kb]
+        help: 'Total physical memory in bytes.'
+        values: [total_physical_memory_bytes]
         query_ref: mssql_os_sys_memory
-      - metric_name: mssql_available_physical_memory_kb
+      - metric_name: mssql_available_physical_memory_bytes
         type: gauge
-        help: 'Available physical memory in kilobytes.'
-        values: [available_physical_memory_kb]
+        help: 'Available physical memory in bytes.'
+        values: [available_physical_memory_bytes]
         query_ref: mssql_os_sys_memory
-      - metric_name: mssql_total_page_file_kb
+      - metric_name: mssql_total_page_file_bytes
         type: gauge
-        help: 'Total page file size in kilobytes.'
-        values: [total_page_file_kb]
+        help: 'Total page file size in bytes.'
+        values: [total_page_file_bytes]
         query_ref: mssql_os_sys_memory
-      - metric_name: mssql_available_page_file_kb
+      - metric_name: mssql_available_page_file_bytes
         type: gauge
-        help: 'Available page file size in kilobytes.'
-        values: [available_page_file_kb]
+        help: 'Available page file size in bytes.'
+        values: [available_page_file_bytes]
         query_ref: mssql_os_sys_memory
 
       #
@@ -388,5 +388,10 @@ data:
       # Populates `mssql_total_physical_memory_kb`, `mssql_available_physical_memory_kb`, `mssql_total_page_file_kb`, `mssql_available_page_file_kb`
       - query_name: mssql_os_sys_memory
         query: |
-          SELECT total_physical_memory_kb, available_physical_memory_kb, total_page_file_kb, available_page_file_kb
-          FROM sys.dm_os_sys_memory
+          SELECT
+            total_physical_memory_kb * 1024 AS total_physical_memory_bytes,
+            available_physical_memory_kb * 1024 AS available_physical_memory_bytes,
+            total_page_file_kb * 1024 AS total_page_file_bytes,
+            available_page_file_kb * 1024 AS available_page_file_bytes
+          FROM
+            sys.dm_os_sys_memory
