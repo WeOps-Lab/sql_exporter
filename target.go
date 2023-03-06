@@ -22,7 +22,6 @@ var enablePing = flag.Bool("config.enable-ping", true, "Enable ping for targets"
 const (
 	// Capacity for the channel to collect metrics.
 	capMetricChan      = 1000
-	nameSpace          = "mssql"
 	upMetricName       = "up"
 	upMetricHelp       = "1 if the target is reachable, or 0 if the scrape failed"
 	scrapeDurationName = "scrape_duration_seconds"
@@ -78,7 +77,7 @@ func NewTarget(
 		collectors = append(collectors, c)
 	}
 
-	upDesc := NewAutomaticMetricDesc(logContext, fmt.Sprintf("%s_%s", nameSpace, upMetricName), upMetricHelp, prometheus.GaugeValue, constLabelPairs)
+	upDesc := NewAutomaticMetricDesc(logContext, upMetricName, upMetricHelp, prometheus.GaugeValue, constLabelPairs)
 	scrapeDurationDesc := NewAutomaticMetricDesc(logContext, scrapeDurationName, scrapeDurationHelp, prometheus.GaugeValue, constLabelPairs)
 	t := target{
 		name:               name,
