@@ -7,5 +7,5 @@ helm install mssql2022 --namespace mssql \
 --set sapassword='Weops123!' \
 --set persistence.enabled=false \
 --set deployment.labels.object='mssql' \
---set resources.limits.memory='3Gi'
+--set resources.limits.memory='3Gi' \
 ./mssqlserver-2022
