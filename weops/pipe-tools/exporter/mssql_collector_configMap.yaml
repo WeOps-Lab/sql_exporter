@@ -22,13 +22,6 @@ data:
       max_connection_lifetime: 5m
 
     # The target to monitor and the collectors to execute on it.
-#    jobs:
-#      - job_name: mssql
-#        collectors: [mssql_*]
-#        static_configs:
-#          - targets:
-#              mssql2022: 'sqlserver://SA:Weops123!@mssqlserver-2022.mssql:1433'
-
     target:
       # Data source name always has a URI schema that matches the driver name. In some cases (e.g. MySQL)
       # the schema gets dropped or replaced to match the driver expected DSN format.
