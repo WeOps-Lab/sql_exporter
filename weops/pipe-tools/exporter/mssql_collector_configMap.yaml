@@ -33,7 +33,7 @@ data:
     collector_files:
       - "/collector/*.collector.yaml"
 
-  sql_config_2022.yaml: |-
+  sql_config_2019.yaml: |-
     # Global defaults.
     global:
       # Subtracted from Prometheus' scrape_timeout to give us some headroom and prevent Prometheus from timing out first.
@@ -62,7 +62,7 @@ data:
     collector_files:
       - "/collector/*.collector.yaml"
 
-  sql_config_2022.yaml: |-
+  sql_config_2017.yaml: |-
     # Global defaults.
     global:
       # Subtracted from Prometheus' scrape_timeout to give us some headroom and prevent Prometheus from timing out first.
