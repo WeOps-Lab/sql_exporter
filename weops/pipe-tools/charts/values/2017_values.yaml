@@ -10,6 +10,9 @@ image:
   repository: mcr.microsoft.com/mssql/server
   tag: 2017-latest
 
+nodeSelector:
+  node-role: worker
+
 deployment:
   labels:
     object: mssql

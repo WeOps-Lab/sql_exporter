@@ -9,6 +9,9 @@ sapassword: "Weops123!"
 image:
   tag: 2019-latest
 
+nodeSelector:
+  node-role: worker
+
 deployment:
   labels:
     object: mssql
