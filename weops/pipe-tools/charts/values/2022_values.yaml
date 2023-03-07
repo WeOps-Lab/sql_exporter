@@ -12,7 +12,7 @@ image:
 nodeSelector:
   node-role: worker
 
-deployment:
+pod:
   labels:
     object: mssql
     object_version: "2022"
