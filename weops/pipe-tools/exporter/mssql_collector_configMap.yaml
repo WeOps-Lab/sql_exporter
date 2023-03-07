@@ -184,7 +184,7 @@ data:
         help: 'Page writes/sec.'
         values: [page_writes_sec]
         query_ref: mssql_buffer_manager
-      - metric_name: mssql_page_life_expectancy
+      - metric_name: mssql_page_life_expectancy_sec
         type: gauge
         help: 'Indicates the minimum number of seconds a page will stay in the buffer pool on this node without references. The traditional advice from Microsoft used to be that the PLE should remain above 300 seconds.'
         values: [page_life_expectancy]
@@ -284,15 +284,6 @@ data:
           SELECT cntr_value
           FROM sys.dm_os_performance_counters WITH (NOLOCK)
           WHERE counter_name = 'Errors/sec' AND instance_name = 'Kill Connection Errors'
-
-      - metric_name: mssql_page_life_expectancy_seconds
-        type: gauge
-        help: 'The minimum number of seconds a page will stay in the buffer pool on this node without references.'
-        values: [cntr_value]
-        query: |
-          SELECT top(1) cntr_value
-          FROM sys.dm_os_performance_counters WITH (NOLOCK)
-          WHERE counter_name = 'Page life expectancy'
 
       - metric_name: mssql_batch_requests
         type: counter
@@ -431,7 +422,7 @@ data:
       # prometheus-mssql-exporter
       #
 
-      # Populates `mssql_page_read_total`, `mssql_page_write_total`, `mssql_page_life_expectancy`, `mssql_lazy_write_total`,
+      # Populates `mssql_page_reads_sec`, `mssql_page_write_sec`, `mssql_page_life_expectancy_sec`, `mssql_lazy_write_sec`
       - query_name: mssql_buffer_manager
         query: |
           SELECT
