@@ -106,6 +106,16 @@ data:
 
     metrics:
       #
+      # dev
+      #
+      - metric_name: mssql_sql_timeout
+        type: gauge
+        help: 'sql timeout.'
+        values: [up]
+        query: |
+          SELECT 1 AS up WAITFOR DELAY '00:00:10'
+
+      #
       # prometheus-mssql-exporter
       #
       - metric_name: mssql_up
