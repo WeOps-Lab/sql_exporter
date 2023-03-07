@@ -6,6 +6,8 @@ metadata:
 spec:
   serviceName: mssql-exporter-standalone-{{VERSION}}
   replicas: 1
+  nodeSelector:
+    node-role: worker
   selector:
     matchLabels:
       app: mssql-exporter-standalone-{{VERSION}}
