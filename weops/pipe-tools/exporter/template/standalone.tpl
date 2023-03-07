@@ -6,8 +6,6 @@ metadata:
 spec:
   serviceName: mssql-exporter-standalone-{{VERSION}}
   replicas: 1
-  nodeSelector:
-    node-role: worker
   selector:
     matchLabels:
       app: mssql-exporter-standalone-{{VERSION}}
@@ -53,6 +51,8 @@ spec:
         object_version: '{{VERSION}}'
         pod_type: exporter
     spec:
+      nodeSelector:
+        node-role: worker
       shareProcessNamespace: true
       volumes:
         - name: mssql-collector
