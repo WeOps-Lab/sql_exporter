@@ -153,11 +153,11 @@ data:
         type: gauge
         help: 'Databases states: 0=ONLINE 1=RESTORING 2=RECOVERING 3=RECOVERY_PENDING 4=SUSPECT 5=EMERGENCY 6=OFFLINE 7=COPYING 10=OFFLINE_SECONDARY.'
         key_labels:
-          - name
+          - db
         values:
           - state
         query: |
-          SELECT name, state FROM master.sys.databases
+          SELECT name AS db, state FROM master.sys.databases
 
       - metric_name: mssql_database_filesize
         type: gauge
