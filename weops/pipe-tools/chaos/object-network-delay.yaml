@@ -17,9 +17,9 @@ spec:
         'object': 'mssql'
     mode: all
     action: delay
-    duration: 3s
+    duration: 12s
     delay:
-      latency: '3000ms'
+      latency: '12000ms'
       correlation: '100'
       jitter: '0ms'
 
