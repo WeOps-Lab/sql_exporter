@@ -7,6 +7,8 @@ data:
   sql_config_2022.yaml: |-
     # Global defaults.
     global:
+      # Default to 10 seconds, since Prometheus has a 10 second scrape timeout default.
+      scrape_timeout: 5s
       # Subtracted from Prometheus' scrape_timeout to give us some headroom and prevent Prometheus from timing out first.
       scrape_timeout_offset: 500ms
       # Minimum interval between collector runs: by default (0s) collectors are executed on every scrape.
@@ -36,6 +38,8 @@ data:
   sql_config_2019.yaml: |-
     # Global defaults.
     global:
+      # Default to 10 seconds, since Prometheus has a 10 second scrape timeout default.
+      scrape_timeout: 5s
       # Subtracted from Prometheus' scrape_timeout to give us some headroom and prevent Prometheus from timing out first.
       scrape_timeout_offset: 500ms
       # Minimum interval between collector runs: by default (0s) collectors are executed on every scrape.
@@ -65,6 +69,8 @@ data:
   sql_config_2017.yaml: |-
     # Global defaults.
     global:
+      # Default to 10 seconds, since Prometheus has a 10 second scrape timeout default.
+      scrape_timeout: 5s
       # Subtracted from Prometheus' scrape_timeout to give us some headroom and prevent Prometheus from timing out first.
       scrape_timeout_offset: 500ms
       # Minimum interval between collector runs: by default (0s) collectors are executed on every scrape.
@@ -428,6 +434,7 @@ data:
 
       # Populates `mssql_page_reads_sec`, `mssql_page_write_sec`, `mssql_page_life_expectancy`, `mssql_lazy_write_sec`
       - query_name: mssql_buffer_manager
+        query: |
         query: |
           SELECT
             [Page reads/sec] AS page_reads_sec,
