@@ -81,5 +81,14 @@ pipeline {
                 }
             }
         }
+
+        stage('上传探针制品'){
+            steps {
+                dir("${env.BuildPath}") {
+                    sh "tar -cvzf mssql_exporter_${env.GitTag}.tar.gz sql_exporter sql_exporter.exe sql_exporter_arm64"
+                    minio bucket: "release", credentialsId: "minio", excludes: "", host: "http://10.10.25.66:9000/", includes: "*.tar.gz", targetFolder: "monitor_plugin/mssql/binary"
+                }
+            }
+        }
     }
 }
