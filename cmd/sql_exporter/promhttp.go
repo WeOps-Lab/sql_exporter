@@ -36,7 +36,7 @@ func ExporterHandlerFor(exporter sql_exporter.Exporter) http.Handler {
 		gatherer := prometheus.Gatherers{exporter.WithContext(ctx)}
 		mfs, err := gatherer.Gather()
 		if err != nil {
-			klog.Errorf("Error gathering metrics: %s", err)
+			klog.Infof("Error gathering metrics: %s", err)
 			if len(mfs) == 0 {
 				http.Error(w, "No metrics gathered, "+err.Error(), http.StatusInternalServerError)
 				return

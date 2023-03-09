@@ -32,7 +32,7 @@ var (
 	webConfigFile = flag.String("web.config.file", "", "[EXPERIMENTAL] TLS/BasicAuth configuration file path")
 	configFile    = flag.String("config.file", "sql_exporter.yml", "SQL Exporter configuration file path")
 	logFormatJSON = flag.Bool("log.json", false, "Set log output format to JSON")
-	logLevel      = flag.String("log.level", "error", "Set log level")
+	logLevel      = flag.String("log.level", "info", "Set log level")
 )
 
 func init() {
