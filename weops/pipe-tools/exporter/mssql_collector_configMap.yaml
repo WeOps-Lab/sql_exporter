@@ -310,6 +310,14 @@ data:
           WHERE a.counter_name = 'Buffer cache hit ratio'
           AND a.OBJECT_NAME = 'SQLServer:Buffer Manager'
 
+      - metric_name: mssql_processes_blocked
+        type: counter
+        help: "The number of processes that are blocked and waiting for resources."
+        values: [cntr_value]
+        query: |
+          SELECT cntr_value
+          FROM sys.dm_os_performance_counters
+          WHERE counter_name = 'Processes blocked'
 
       #
       # Collected from sys.dm_io_virtual_file_stats
