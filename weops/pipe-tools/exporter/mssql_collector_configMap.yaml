@@ -435,7 +435,6 @@ data:
       # Populates `mssql_page_reads_sec`, `mssql_page_write_sec`, `mssql_page_life_expectancy`, `mssql_lazy_write_sec`
       - query_name: mssql_buffer_manager
         query: |
-        query: |
           SELECT
             [Page reads/sec] AS page_reads_sec,
             [Page writes/sec] AS page_writes_sec,
