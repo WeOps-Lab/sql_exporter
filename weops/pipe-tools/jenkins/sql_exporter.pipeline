@@ -57,8 +57,8 @@ pipeline {
             steps {
                 dir('weops/pipe-tools/exporter/template') {
                     sh 'bash build.sh'
-                    cp 'mssql_standard.collector.yml ../../bin'
-                    cp 'sql_exporter.yml ../../bin'
+                    sh 'cp mssql_standard.collector.yml ../../bin'
+                    sh 'cp sql_exporter.yml ../../bin'
                 }
             }
         }
