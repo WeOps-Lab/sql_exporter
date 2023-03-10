@@ -417,6 +417,41 @@ data:
         query: |
           SELECT DATEDIFF(second,sqlserver_start_time,GETDATE()) as uptime_s FROM sys.dm_os_sys_info;
 
+      - metric_name: mssql_last_backup_duration
+        type: gauge
+        help: "The time elapsed since the last backup of each SQL Server database."
+        values: [db_last_backup_duration]
+        query: |
+          SELECT
+            [db_last_backup_duration] = Isnull(
+              CONVERT(VARCHAR, Datediff(DAY, BS.bdate, Getdate()), 120),
+              -1
+            ),
+            [db_name] = D.NAME
+          FROM
+            sys.databases D
+            LEFT JOIN (
+              SELECT
+                database_name,
+                TYPE,
+                backup_finish_date bdate
+              FROM
+                msdb.dbo.backupset BKS
+                JOIN (
+                  SELECT
+                    database_name dbname,
+                    Max(backup_finish_date) max_backup_finish_date
+                  FROM
+                    msdb.dbo.backupset
+                  GROUP BY
+                    database_name
+                ) MBKS ON max_backup_finish_date = backup_finish_date
+                AND dbname = database_name
+            ) BS ON D.NAME = BS.database_name
+          WHERE
+            D.NAME NOT IN ('tempdb')
+
+
       #
       # Collected from sys.dm_io_virtual_file_stats
       #
