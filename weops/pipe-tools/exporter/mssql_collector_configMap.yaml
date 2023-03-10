@@ -329,21 +329,21 @@ data:
         type: gauge
         help: "The database file usage ratio."
         values: [db_file_used_ratio]
-        key_labels: [db_name, file_name]
+        key_labels: [db, file_name]
         query: |
           IF OBJECT_ID('tempdb..#file_used_ratio') IS NOT NULL DROP TABLE #file_used_ratio
-          CREATE TABLE #file_used_ratio ([db_file_used_ratio] decimal(5,2), [db_name] nvarchar(255), [file_name] nvarchar(255))
+          CREATE TABLE #file_used_ratio ([db_file_used_ratio] decimal(5,2), [db] nvarchar(255), [file_name] nvarchar(255))
           EXEC sp_MSforeachdb 'use [?]
             insert into #file_used_ratio
             select
               [db_file_used_ratio] = FILEPROPERTY(name, ''SpaceUsed'')/convert(float,size)*100.0,
-              [db_name] = DB_NAME(),
+              [db] = DB_NAME(),
               [file_name] = name
             from sys.database_files
             where type = 0'
           SELECT
             [db_file_used_ratio],
-            [db_name],
+            [db],
             [file_name]
           FROM #file_used_ratio
 
@@ -351,11 +351,11 @@ data:
         type: gauge
         help: "The size of the database log files."
         values: [db_log_file_size]
-        key_labels: [db_name, file_name]
+        key_labels: [db, file_name]
         query: |
           SELECT
             [db_log_file_size] = a.size / 128,
-            [db_name] = b.NAME,
+            [db] = b.NAME,
             [file_name] = a.NAME
           FROM
             sys.master_files a
@@ -367,21 +367,21 @@ data:
         type: gauge
         help: "The usage ratio of the database log files."
         values: [db_log_file_used_ratio]
-        key_labels: [db_name, file_name]
+        key_labels: [db, file_name]
         query: |
           IF OBJECT_ID('tempdb..#file_used_ratio') IS NOT NULL DROP TABLE #file_used_ratio
-          CREATE TABLE #file_used_ratio ([db_log_file_used_ratio] decimal(5,2), [db_name] nvarchar(255), [file_name] nvarchar(255))
+          CREATE TABLE #file_used_ratio ([db_log_file_used_ratio] decimal(5,2), [db] nvarchar(255), [file_name] nvarchar(255))
           EXEC sp_MSforeachdb 'use [?]
             insert into #file_used_ratio
             select
               [db_log_file_used_ratio] = FILEPROPERTY(name, ''SpaceUsed'')/convert(float,size)*100.0,
-              [db_name] = DB_NAME(),
+              [db] = DB_NAME(),
               [file_name] = name
             from sys.database_files
             where type = 1'
           SELECT
             [db_log_file_used_ratio],
-            [db_name],
+            [db],
             [file_name]
           FROM
             #file_used_ratio
