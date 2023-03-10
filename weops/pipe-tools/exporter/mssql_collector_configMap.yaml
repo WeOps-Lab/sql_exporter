@@ -325,6 +325,98 @@ data:
           FROM sys.dm_os_performance_counters
           WHERE counter_name = 'Processes blocked'
 
+      - metric_name: mssql_db_file_used_ratio
+        type: gauge
+        help: "The database file usage ratio."
+        values: [db_file_used_ratio]
+        key_labels: [db_name, file_name]
+        query: |
+          IF OBJECT_ID('tempdb..#file_used_ratio') IS NOT NULL DROP TABLE #file_used_ratio
+          CREATE TABLE #file_used_ratio ([db_file_used_ratio] decimal(5,2), [db_name] nvarchar(255), [file_name] nvarchar(255))
+          EXEC sp_MSforeachdb 'use [?]
+            insert into #file_used_ratio
+            select
+              [db_file_used_ratio] = FILEPROPERTY(name, ''SpaceUsed'')/convert(float,size)*100.0,
+              [db_name] = DB_NAME(),
+              [file_name] = name
+            from sys.database_files
+            where type = 0'
+          SELECT
+            [db_file_used_ratio],
+            [db_name],
+            [file_name]
+          FROM #file_used_ratio
+
+      - metric_name: mssql_db_log_file_size
+        type: gauge
+        help: "The size of the database log files."
+        values: [db_log_file_size]
+        key_labels: [db_name, file_name]
+        query: |
+          SELECT
+            [db_log_file_size] = a.size / 128,
+            [db_name] = b.NAME,
+            [file_name] = a.NAME
+          FROM
+            sys.master_files a
+            JOIN sys.databases b ON a.database_id = b.database_id
+          WHERE
+            a.type = 1
+
+      - metric_name: mssql_db_log_file_used_ratio
+        type: gauge
+        help: "The usage ratio of the database log files."
+        values: [db_log_file_used_ratio]
+        key_labels: [db_name, file_name]
+        query: |
+          IF OBJECT_ID('tempdb..#file_used_ratio') IS NOT NULL DROP TABLE #file_used_ratio
+          CREATE TABLE #file_used_ratio ([db_log_file_used_ratio] decimal(5,2), [db_name] nvarchar(255), [file_name] nvarchar(255))
+          EXEC sp_MSforeachdb 'use [?]
+            insert into #file_used_ratio
+            select
+              [db_log_file_used_ratio] = FILEPROPERTY(name, ''SpaceUsed'')/convert(float,size)*100.0,
+              [db_name] = DB_NAME(),
+              [file_name] = name
+            from sys.database_files
+            where type = 1'
+          SELECT
+            [db_log_file_used_ratio],
+            [db_name],
+            [file_name]
+          FROM
+            #file_used_ratio
+
+      - metric_name: mssql_always_on_status
+        type: gauge
+        help: "The status of the AlwaysOn availability group."
+        values: [AGStatus]
+        query: |
+          IF EXISTS (
+            SELECT
+              *
+            FROM
+              [sys].[all_views]
+            WHERE
+              name = 'dm_hadr_availability_group_states'
+          )
+          AND (
+            SELECT
+              SERVERPROPERTY('IsHadrEnabled')
+          ) = 1 BEGIN
+          SELECT
+            1 AS AGStatus
+          end
+          ELSE
+          SELECT
+            0 AS AGStatus
+
+      - metric_name: mssql_instance_uptime
+        type: gauge
+        help: "The running time of the SQL Server instance since the last restart."
+        values: [uptime_s]
+        query: |
+          SELECT DATEDIFF(second,sqlserver_start_time,GETDATE()) as uptime_s FROM sys.dm_os_sys_info;
+
       #
       # Collected from sys.dm_io_virtual_file_stats
       #
