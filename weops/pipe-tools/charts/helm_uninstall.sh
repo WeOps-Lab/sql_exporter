@@ -3,7 +3,7 @@
 # 卸载监控对象
 NAMESPACE="mssql"
 
-# Uninstall Redis deployments
+# Uninstall mssql deployments
 for RELEASE in $(helm list -n $NAMESPACE --short)
 do
   echo "Uninstalling $RELEASE ..."
