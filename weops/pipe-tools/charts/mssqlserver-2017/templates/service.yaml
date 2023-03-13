@@ -26,6 +26,9 @@ spec:
     port: {{ .Values.service.port }}
     targetPort: mssql
     protocol: TCP
+    {{- if .Values.service.nodePort }}
+    nodePort: {{ .Values.service.nodePort }}
+    {{- end }}
   selector:
     app: {{ template "mssql.name" . }}
     release: {{ .Release.Name }}

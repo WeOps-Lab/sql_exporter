@@ -27,4 +27,4 @@ resources:
 
 service:
   type: NodePort
-  port: 1435
+  nodePort: 1435

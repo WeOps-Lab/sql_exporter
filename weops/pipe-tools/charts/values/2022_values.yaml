@@ -26,4 +26,4 @@ resources:
 
 service:
   type: NodePort
-  port: 1433
+  nodePort: 1433
