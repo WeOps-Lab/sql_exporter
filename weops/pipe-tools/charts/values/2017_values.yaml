@@ -24,3 +24,6 @@ resources:
   limits:
   #  cpu: 100m
     memory: 2Gi
+
+service:
+  type: nodePort
