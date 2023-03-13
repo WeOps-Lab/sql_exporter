@@ -25,4 +25,5 @@ resources:
     memory: 2Gi
 
 service:
-  type: nodePort
+  type: NodePort
+  port: 1433
