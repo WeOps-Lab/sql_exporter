@@ -4,8 +4,8 @@ metadata:
   name: create-mssql-account-cron
   namespace: mssql
 spec:
-  schedule: "*/5 * * * *"
-  successfulJobsHistoryLimit: 5
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
