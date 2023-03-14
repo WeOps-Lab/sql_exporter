@@ -27,7 +27,7 @@ spec:
                 "Weops123!",
                 "-I",
                 "-Q",
-                "CREATE LOGIN monitoring_user WITH PASSWORD = 'Weops123!'; GRANT VIEW SERVER STATE TO monitoring_user; USE master; CREATE USER monitoring_user FOR LOGIN monitoring_user; ALTER ROLE db_datareader ADD MEMBER monitoring_user;",
+                "CREATE LOGIN monitoring_user WITH PASSWORD = 'Weops123!'; GRANT VIEW SERVER STATE TO monitoring_user; USE master; GRANT VIEW ANY DEFINITION TO monitoring_user; CREATE USER monitoring_user FOR LOGIN monitoring_user; ALTER ROLE db_datareader ADD MEMBER monitoring_user;",
               ]
           - name: create-mssql-2019-account
             image: registry-svc:25000/library/mssql-tools:latest
