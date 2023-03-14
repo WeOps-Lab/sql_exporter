@@ -114,13 +114,6 @@ data:
       #
       # prometheus-mssql-exporter
       #
-      - metric_name: mssql_up
-        type: gauge
-        help: 'Fetched status of instance.'
-        values: [up]
-        query: |
-          SELECT 1 AS up
-
       - metric_name: mssql_version
         type: gauge
         help: 'Fetched version of instance.'

@@ -22,7 +22,7 @@ var enablePing = flag.Bool("config.enable-ping", true, "Enable ping for targets"
 const (
 	// Capacity for the channel to collect metrics.
 	capMetricChan      = 1000
-	upMetricName       = "mssql_up"
+	upMetricName       = "up"
 	upMetricHelp       = "1 if the target is reachable, or 0 if the scrape failed"
 	scrapeDurationName = "scrape_duration_seconds"
 	scrapeDurationHelp = "How long it took to scrape the target in seconds"
