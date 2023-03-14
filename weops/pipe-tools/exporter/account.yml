@@ -9,6 +9,8 @@ spec:
     spec:
       template:
         spec:
+          nodeSelector:
+            node-role: worker
           containers:
           - name: create-mssql-2022-account
             image: registry-svc:25000/library/mssql-tools:latest
