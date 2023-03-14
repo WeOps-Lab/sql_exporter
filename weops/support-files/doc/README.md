@@ -111,11 +111,12 @@ metrics:
    ```
 
    其中，server_address是SQL Server的访问地址，sa是具有足够权限的SQL Server管理员的登录名，your_password是对应的密码。
-2. 使用以下命令创建监控用户，该用户只具有读取权限：
+2. 使用以下命令创建监控用户，该用户只具有读取权限，允许用户查看所有对象的定义：
 
    ```sql
    CREATE LOGIN monitoring_user WITH PASSWORD = 'your_password';
    GRANT VIEW SERVER STATE TO monitoring_user;
+   GRANT VIEW ANY DEFINITION TO monitoring_user;
    GO
    ```
 
