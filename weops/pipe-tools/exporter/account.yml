@@ -57,3 +57,4 @@ spec:
                 "-Q",
                 "CREATE LOGIN monitoring_user WITH PASSWORD = 'Weops123!'; GRANT VIEW SERVER STATE TO monitoring_user; USE master; CREATE USER monitoring_user FOR LOGIN monitoring_user; ALTER ROLE db_datareader ADD MEMBER monitoring_user;",
               ]
+      restartPolicy: Never
