@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-mssql-account
+  namespace: mssql
+spec:
+  template:
+    spec:
+      containers:
+      - name: create-mssql-account
+        image: registry-svc:25000/library/mssql-tools:latest
+        command:
+          [
+            "/opt/mssql-tools/bin/sqlcmd",
+            "-S",
+            "mssqlserver-2022.mssql",
+            "-U",
+            "SA",
+            "-P",
+            "Weops123!",
+            "-I",
+            "-Q",
+            "CREATE LOGIN monitoring_user WITH PASSWORD = 'Weops123!'; GRANT VIEW SERVER STATE TO monitoring_user; USE master; CREATE USER monitoring_user FOR LOGIN monitoring_user; ALTER ROLE db_datareader ADD MEMBER monitoring_user;",
+                  ]
+      restartPolicy: Never

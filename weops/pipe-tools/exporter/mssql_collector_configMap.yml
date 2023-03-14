@@ -27,7 +27,7 @@ data:
     target:
       # Data source name always has a URI schema that matches the driver name. In some cases (e.g. MySQL)
       # the schema gets dropped or replaced to match the driver expected DSN format.
-      data_source_name: 'sqlserver://SA:Weops123!@mssqlserver-2022.mssql:1433'
+      data_source_name: 'sqlserver://monitoring_user:Weops123!@mssqlserver-2022.mssql:1433'
       collectors: [mssql_*]
 
     # Collector files specifies a list of globs. One collector definition is read from each matching file.
@@ -58,7 +58,7 @@ data:
     target:
       # Data source name always has a URI schema that matches the driver name. In some cases (e.g. MySQL)
       # the schema gets dropped or replaced to match the driver expected DSN format.
-      data_source_name: 'sqlserver://SA:Weops123!@mssqlserver-2019.mssql:1433'
+      data_source_name: 'sqlserver://monitoring_user:Weops123!@mssqlserver-2019.mssql:1433'
       collectors: [mssql_*]
 
     # Collector files specifies a list of globs. One collector definition is read from each matching file.
@@ -89,7 +89,7 @@ data:
     target:
       # Data source name always has a URI schema that matches the driver name. In some cases (e.g. MySQL)
       # the schema gets dropped or replaced to match the driver expected DSN format.
-      data_source_name: 'sqlserver://SA:Weops123!@mssql-2017-mssql-linux.mssql:1433'
+      data_source_name: 'sqlserver://monitoring_user:Weops123!@mssql-2017-mssql-linux.mssql:1433'
       collectors: [mssql_*]
 
     # Collector files specifies a list of globs. One collector definition is read from each matching file.
