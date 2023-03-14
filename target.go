@@ -22,7 +22,7 @@ var enablePing = flag.Bool("config.enable-ping", true, "Enable ping for targets"
 const (
 	// Capacity for the channel to collect metrics.
 	capMetricChan      = 1000
-	upMetricName       = "up"
+	upMetricName       = "mssql_up"
 	upMetricHelp       = "1 if the target is reachable, or 0 if the scrape failed"
 	scrapeDurationName = "scrape_duration_seconds"
 	scrapeDurationHelp = "How long it took to scrape the target in seconds"
@@ -104,10 +104,8 @@ func (t *target) Collect(ctx context.Context, ch chan<- Metric) {
 		ch <- NewInvalidMetric(errors.Wrap(t.logContext, err))
 		targetUp = false
 	}
-	if t.name != "" {
-		// Export the target's `up` metric as early as we know what it should be.
-		ch <- NewMetric(t.upDesc, boolToFloat64(targetUp))
-	}
+
+	ch <- NewMetric(t.upDesc, boolToFloat64(targetUp))
 
 	var wg sync.WaitGroup
 	// Don't bother with the collectors if target is down.
@@ -124,10 +122,8 @@ func (t *target) Collect(ctx context.Context, ch chan<- Metric) {
 	// Wait for all collectors (if any) to complete.
 	wg.Wait()
 
-	if t.name != "" {
-		// And export a `scrape duration` metric once we're done scraping.
-		ch <- NewMetric(t.scrapeDurationDesc, float64(time.Since(scrapeStart))*1e-9)
-	}
+	// And export a `scrape duration` metric once we're done scraping.
+	ch <- NewMetric(t.scrapeDurationDesc, float64(time.Since(scrapeStart))*1e-9)
 }
 
 func (t *target) ping(ctx context.Context) errors.WithContext {
