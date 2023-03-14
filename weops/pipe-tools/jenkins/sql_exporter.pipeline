@@ -26,7 +26,6 @@ pipeline {
                     sh 'bash helm_uninstall.sh'
                     sleep 3
                     sh 'bash helm_install.sh'
-                    kubectl delete job create-mssql-account --namespace mssql --cascade=true
                 }
             }
         }
@@ -68,6 +67,7 @@ pipeline {
             steps {
                 withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
                     dir('weops/pipe-tools/exporter') {
+                        sh 'kubectl delete job create-mssql-account --namespace mssql --cascade=true'
                         sh 'kubectl replace --force -f ./mssql_collector_configMap.yml -n mssql'
                         sh 'kubectl apply -f ./account.yml -n mssql'
                         sh 'kubectl replace --force -f ./standalone -n mssql'
