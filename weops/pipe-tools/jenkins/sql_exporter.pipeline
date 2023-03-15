@@ -42,10 +42,21 @@ pipeline {
 
         stage('编译探针'){
             steps {
-                sh "make build GOPROXY=https://goproxy.cn GOOS=linux GOARCH=amd64 PREFIX=${env.BuildPath}"
-                sh "make build GOPROXY=https://goproxy.cn GOOS=windows GOARCH=amd64 PREFIX=${env.BuildPath}"
-                sh "make build GOPROXY=https://goproxy.cn GOOS=linux GOARCH=arm64 PREFIX=${env.BuildPath}/arm"
-                sh "cp ${env.BuildPath}/arm/sql_exporter ${env.BuildPath}/sql_exporter_arm64"
+                script {
+                    def buildOptions = [
+                        "linux-amd64": "GOOS=linux GOARCH=amd64",
+                        "windows-amd64": "GOOS=windows GOARCH=amd64",
+                        "linux-arm64": "GOOS=linux GOARCH=arm64"
+                    ]
+                    parallel buildOptions.collectEntries { arch, options ->
+                        [(arch): {
+                            sh "make build GOPROXY=https://goproxy.cn ${options} PREFIX=${env.BuildPath}/${arch}"
+                            if (arch == "linux-arm64") {
+                                sh "cp ${env.BuildPath}/${arch}/sql_exporter ${env.BuildPath}/sql_exporter_arm64"
+                            }
+                        }]
+                    }
+                }
             }
         }
 
@@ -73,28 +84,21 @@ pipeline {
             }
         }
 
-        stage('部署探针'){
+        stage('部署探针和混沌工程') {
             steps {
                 withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
                     dir('weops/pipe-tools/exporter') {
                         sh 'kubectl replace --force -f ./mssql_collector_configMap.yml -n mssql'
                         sh 'kubectl replace --force -f ./standalone -n mssql'
                     }
-                }
-            }
-        }
-
-        stage('部署混沌工程'){
-            steps {
-                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
                     dir('weops/pipe-tools/chaos') {
-                    sh 'kubectl apply -f ./ -n mssql'
+                        sh 'kubectl apply -f ./ -n mssql'
                     }
                 }
             }
         }
 
-        stage('上传探针制品'){
+        stage('上传探针制品') {
             steps {
                 dir("${env.BuildPath}") {
                     sh "tar -cvzf mssql_exporter_${env.GitTag}.tar.gz sql_exporter sql_exporter.exe sql_exporter_arm64 mssql_standard.collector.yml sql_exporter.yml"
