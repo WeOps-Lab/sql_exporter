@@ -50,8 +50,10 @@ pipeline {
                     ]
                     parallel buildOptions.collectEntries { arch, options ->
                         [(arch): {
-                            sh "make build GOPROXY=https://goproxy.cn ${options} PREFIX=${env.BuildPath}/${arch}"
-                            if (arch == "linux-arm64") {
+                            if (arch == "linux-amd64" || arch == "windows-amd64") {
+                                sh "make build GOPROXY=https://goproxy.cn ${options} PREFIX=${env.BuildPath}"
+                            } else if (arch == "linux-arm64") {
+                                sh "make build GOPROXY=https://goproxy.cn ${options} PREFIX=${env.BuildPath}/${arch}"
                                 sh "cp ${env.BuildPath}/${arch}/sql_exporter ${env.BuildPath}/sql_exporter_arm64"
                             }
                         }]
