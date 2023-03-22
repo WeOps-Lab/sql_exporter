@@ -8,7 +8,7 @@
 
 ### 版本支持
 
-理论上支持: linux, windows
+操作系统支持: linux, windows
 
 是否支持arm: 支持
 
