@@ -4,7 +4,7 @@ metadata:
   namespace: mssql
   name: mssql-network-delay
 spec:
-  schedule: '* * * * *'
+  schedule: '*/3 * * * *'
   startingDeadlineSeconds: null
   concurrencyPolicy: 'Allow'
   historyLimit: 1
