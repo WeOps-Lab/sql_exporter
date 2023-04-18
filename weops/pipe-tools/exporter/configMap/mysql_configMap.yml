@@ -17,7 +17,7 @@ data:
       collectors: [mysql_*]
 
     collector_files:
-      - "mysql.collector.yml"
+      - "mysql.collector.yaml"
 
   mysql.collector.yaml: |-
     collector_name: mysql_standard

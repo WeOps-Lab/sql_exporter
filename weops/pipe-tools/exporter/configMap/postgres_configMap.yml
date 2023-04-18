@@ -17,7 +17,7 @@ data:
       collectors: [postgres_*]
 
     collector_files:
-      - "postgres.collector.yml"
+      - "postgres.collector.yaml"
 
 
   postgres.collector.yaml: |-
