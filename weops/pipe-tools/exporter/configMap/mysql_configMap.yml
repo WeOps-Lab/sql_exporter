@@ -22,6 +22,14 @@ data:
   mysql.collector.yaml: |-
     collector_name: mysql_standard
     metrics:
+      - metric_name: mysql_uptime
+        type: gauge
+        help: 'MySQL server uptime in seconds.'
+        key_labels: []
+        values: [Value]
+        query: |
+          SHOW STATUS LIKE 'Uptime';
+
       - metric_name: mysql_connections
         type: gauge
         help: 'Number of client connections to the MySQL server.'
