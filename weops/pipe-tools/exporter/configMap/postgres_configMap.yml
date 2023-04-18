@@ -13,7 +13,7 @@ data:
       max_connection_lifetime: 5m
 
     target:
-      data_source_name: 'postgres://weops:Weops123!@pg-cluster-v15-0-postgresql-primary.postgres:5432'
+      data_source_name: 'postgres://weops:Weops123!@pg-cluster-v15-0-postgresql-primary.postgres:5432/postgres?sslmode=disable'
       collectors: [postgres_*]
 
     collector_files:
