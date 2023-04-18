@@ -39,3 +39,23 @@ data:
         values: [VALUE]
         query: |
           SELECT (SYSDATE - STARTUP_TIME) * 86400 AS VALUE FROM v$instance
+
+      - metric_name: oracle_sessions
+        type: gauge
+        help: 'Number of active sessions in the Oracle database.'
+        key_labels:
+          - TYPE
+        values: [VALUE]
+        query: |
+          SELECT 'total' AS TYPE, COUNT(*) AS VALUE FROM v$session
+          UNION ALL
+          SELECT 'active', COUNT(*) FROM v$session WHERE status='ACTIVE'
+          UNION ALL
+          SELECT 'inactive', COUNT(*) FROM v$session WHERE status='INACTIVE'
+
+      - metric_name: oracle_transaction_rate
+        type: counter
+        help: 'Number of committed transactions per second in the Oracle database.'
+        values: [VALUE]
+        query: |
+          SELECT SUM(value) AS VALUE FROM v$sysstat WHERE name='user commits'
