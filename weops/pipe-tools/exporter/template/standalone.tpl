@@ -85,7 +85,7 @@ metadata:
   labels:
     app: sql-exporter-{{SQL_OBJECT}}
   name: sql-exporter-{{SQL_OBJECT}}
-  namespace: sql
+  namespace: sql-exporter
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9399"
