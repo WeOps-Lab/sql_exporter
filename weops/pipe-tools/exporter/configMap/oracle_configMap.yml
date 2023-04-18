@@ -23,12 +23,19 @@ data:
   oracle.collector.yaml: |-
     collector_name: oracle_standard
     metrics:
-      - metric_name: oracle_connections
+      - metric_name: oracle_version
         type: gauge
-        help: 'Number of client connections to the oracleQL server.'
+        help: 'Oracle database version information.'
         key_labels:
-          - status
-          - type
-        values: [value]
+          - VERSION
+        values: [VALUE]
         query: |
-          SELECT status, type, COUNT(*) as value FROM v$session GROUP BY status, type
+          SELECT version AS version, 1 AS value FROM v$instance
+
+      - metric_name: oracle_uptime
+        type: gauge
+        help: 'Oracle database uptime in seconds.'
+        key_labels: []
+        values: [VALUE]
+        query: |
+          SELECT (SYSDATE - STARTUP_TIME) * 86400 AS VALUE FROM v$instance

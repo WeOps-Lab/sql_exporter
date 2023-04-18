@@ -28,7 +28,7 @@ data:
         key_labels: []
         values: [Value]
         query: |
-          SHOW STATUS LIKE 'Uptime';
+          SHOW STATUS LIKE 'Uptime'
 
       - metric_name: mysql_connections
         type: gauge
