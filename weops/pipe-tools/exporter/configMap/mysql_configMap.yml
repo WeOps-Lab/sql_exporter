@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-sql-config
+  namespace: sql-exporter
+data:
+  mysql_config.yaml: |-
+    global:
+      scrape_timeout_offset: 500ms
+      min_interval: 0s
+      max_connections: 3
+      max_idle_connections: 3
+      max_connection_lifetime: 5m
+
+    target:
+      data_source_name: 'mysql://weops:Weops123!@mysql-cluster-v5-7-primary.mysql:3306'
+      collectors: [mysql_*]
+
+    collector_files:
+      - "mysql.collector.yml"
+
+  mysql.collector.yaml: |-
+    collector_name: mysql_standard
+    metrics:
+      - metric_name: mysql_connections
+        type: gauge
+        help: 'Number of client connections to the MySQL server.'
+        key_labels:
+          - type
+        values: [value]
+        query: |
+          SELECT 'total' AS type, COUNT(*) AS value FROM information_schema.processlist
+          UNION ALL
+          SELECT 'idle', COUNT(*) FROM information_schema.processlist WHERE Command='Sleep'
+          UNION ALL
+          SELECT 'active', COUNT(*) FROM information_schema.processlist WHERE Command!='Sleep'
+
+      - metric_name: mysql_qps
+        type: counter
+        help: 'Number of queries per second.'
+        values: [Value]
+        query: |
+          SHOW GLOBAL STATUS LIKE 'Queries'
+
+      - metric_name: mysql_slow_queries
+        type: counter
+        help: 'Number of slow queries processed by the MySQL server.'
+        values: [Value]
+        query: |
+          SHOW GLOBAL STATUS LIKE 'Slow_queries'

@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-sql-config
+  namespace: sql-exporter
+data:
+  postgres_config.yaml: |-
+    global:
+      scrape_timeout_offset: 500ms
+      min_interval: 0s
+      max_connections: 3
+      max_idle_connections: 3
+      max_connection_lifetime: 5m
+
+    target:
+      data_source_name: 'postgres://weops:Weops123!@pg-cluster-v15-0-postgresql-primary.postgres:5432'
+      collectors: [postgres_*]
+
+    collector_files:
+      - "postgres.collector.yml"
+
+
+  postgres.collector.yaml: |-
+    collector_name: postgres_standard
+    metrics:
+      - metric_name: postgres_connections
+        type: gauge
+        help: 'Number of client connections to the PostgreSQL server.'
+        key_labels:
+          - type
+        values: [value]
+        query: |
+          SELECT 'total' AS type, COUNT(*) AS value FROM pg_stat_activity
+          UNION ALL
+          SELECT 'idle', COUNT(*) FROM pg_stat_activity WHERE state='idle'
+          UNION ALL
+          SELECT 'active', COUNT(*) FROM pg_stat_activity WHERE state='active'
+
+      - metric_name: postgres_locks
+        type: gauge
+        help: 'Number of locks held by the PostgreSQL server.'
+        key_labels:
+          - mode
+        values: [value]
+        query: |
+          SELECT mode, COUNT(*) AS value FROM pg_locks GROUP BY mode
+
+      - metric_name: postgres_index_usage
+        type: counter
+        help: 'Number of times each index has been scanned or used to satisfy a query condition.'
+        key_labels:
+          - index
+        values: [value]
+        query: |
+          SELECT indexrelname AS index, idx_scan AS value FROM pg_stat_user_indexes
+
+      - metric_name: postgres_version
+        type: gauge
+        help: 'PostgreSQL version information.'
+        key_labels:
+          - version
+        values: [value]
+        query: |
+          SELECT substring(version() from 'PostgreSQL ([0-9]+\.[0-9]+)') AS version, 1 AS value
+
+      - metric_name: postgres_uptime
+        type: gauge
+        help: 'PostgreSQL server uptime in seconds.'
+        key_labels: []
+        values: [value]
+        query: |
+          SELECT EXTRACT(EPOCH FROM now() - pg_postmaster_start_time()) AS value
+
