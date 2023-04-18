@@ -19,6 +19,7 @@ var driverList = map[string][]string{
 		"github.com/go-sql-driver/mysql",
 		"github.com/lib/pq",
 		"github.com/microsoft/go-mssqldb/azuread",
+		"github.com/sijms/go-ora/v2",
 	},
 	"extra": {
 		"github.com/ClickHouse/clickhouse-go",
