@@ -1,0 +1,77 @@
+pipeline {
+    agent {
+        node('chaos')
+    }
+
+    parameters {
+       string(name: 'BranchName', defaultValue: 'dev', description: null)
+       string(name: 'GitTag', defaultValue: 'dev', description: null)
+       string(name: 'BuildPath', defaultValue: 'weops/pipe-tools/bin', description: 'The path to build binaries')
+    }
+
+    environment {
+       PATH = "/data/go/bin:${env.PATH}"
+    }
+
+    stages {
+        stage('拉取代码') {
+            steps {
+                git url: 'https://github.etherfurnace.cn/github.com/WeOps-Lab/sql_exporter', branch: "weops/general/${env.BranchName}"
+            }
+        }
+
+        stage('编译探针'){
+            steps {
+                script {
+                    def buildOptions = [
+                        "linux-amd64": "GOOS=linux GOARCH=amd64",
+                        "windows-amd64": "GOOS=windows GOARCH=amd64",
+                        "linux-arm64": "GOOS=linux GOARCH=arm64"
+                    ]
+                    parallel buildOptions.collectEntries { arch, options ->
+                        [(arch): {
+                            if (arch == "linux-amd64" || arch == "windows-amd64") {
+                                sh "make build CGO_ENABLED=0 GOPROXY=https://goproxy.cn ${options} PREFIX=${env.BuildPath}"
+                            } else if (arch == "linux-arm64") {
+                                sh "make build CGO_ENABLED=0 GOPROXY=https://goproxy.cn ${options} PREFIX=${env.BuildPath}/${arch}"
+                                sh "cp ${env.BuildPath}/${arch}/sql_exporter ${env.BuildPath}/sql_exporter_arm64"
+                            }
+                        }]
+                    }
+                }
+            }
+        }
+
+        stage('构建镜像和推送镜像') {
+            steps {
+                dir("${env.BuildPath}") {
+                    sh 'docker build --no-cache -f ../docker/Dockerfile -t registry-svc:25000/library/sql-exporter:latest .'
+                    sh 'docker push registry-svc:25000/library/sql-exporter:latest'
+                }
+            }
+        }
+
+        stage('生成部署文件') {
+            steps {
+                dir('weops/pipe-tools/exporter/template') {
+                    sh 'bash build.sh'
+                }
+            }
+        }
+
+        stage('部署探针和混沌工程') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'chaos', namespace: '', serverUrl: 'https://10.10.90.113:6443') {
+                    dir('weops/pipe-tools/exporter') {
+                        sh 'kubectl apply -f ./configMap.yml -n sql-exporter'
+                        sh 'kubectl apply -f ./standalone -n sql-exporter'
+                    }
+                    dir('weops/pipe-tools/chaos') {
+                        sh 'kubectl apply -f ./ -n sql-exporter'
+                    }
+                }
+            }
+        }
+    }
+}
+
