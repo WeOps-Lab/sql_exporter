@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-sql-config
+  namespace: sql-exporter
+data:
+  mssql_config.yaml: |-
+    global:
+      scrape_timeout_offset: 500ms
+      min_interval: 0s
+      max_connections: 3
+      max_idle_connections: 3
+      max_connection_lifetime: 5m
+
+    target:
+      data_source_name: 'sqlserver://monitoring_user:Weops123!@mssqlserver-2022.mssql:1433'
+      collectors: [mssql_*]
+
+    collector_files:
+      - "mssql.collector.yaml"
+
+  mssql.collector.yaml: |-
+    collector_name: mssql_standard
+    metrics:
+      - metric_name: mssql_version
+        type: gauge
+        help: 'Fetched version of instance.'
+        key_labels:
+          - ProductVersion
+        values: [value]
+        query: |
+          SELECT CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) AS ProductVersion, 1 AS value
+
+      - metric_name: mssql_client_connections
+        type: gauge
+        help: 'Number of active client connections.'
+        key_labels:
+          - db
+          - host
+        values:
+          - count
+        query: |
+          SELECT host_name AS host, DB_NAME(dbid) AS db, COUNT(*) AS count
+          FROM sys.dm_exec_sessions a
+          LEFT JOIN sysprocesses b on a.session_id=b.spid
+          WHERE is_user_process=1
+          GROUP BY host_name, dbid
+
+      - metric_name: mssql_database_state
+        type: gauge
+        help: 'Databases states: 0=ONLINE 1=RESTORING 2=RECOVERING 3=RECOVERY_PENDING 4=SUSPECT 5=EMERGENCY 6=OFFLINE 7=COPYING 10=OFFLINE_SECONDARY.'
+        key_labels:
+          - db
+        values:
+          - state
+        query: |
+          SELECT name AS db, state FROM master.sys.databases
+
+      - metric_name: mssql_database_filesize
+        type: gauge
+        help: 'Physical sizes of files used by database in KB, their names and types (0=rows, 1=log, 2=filestream,3=n/a 4=fulltext(before v2008 of MSSQL)).'
+        key_labels:
+          - db
+          - logical_name
+          - type
+          - physical_name
+        values:
+          - size_kb
+        query: |
+          SELECT DB_NAME(database_id) AS db, name AS logical_name, type, physical_name, (size * CAST(8 AS BIGINT)) size_kb FROM sys.master_files
