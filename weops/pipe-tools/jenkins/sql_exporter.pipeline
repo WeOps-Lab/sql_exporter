@@ -97,6 +97,7 @@ pipeline {
         stage('上传探针制品'){
             steps {
                 dir("${env.BuildPath}") {
+                    sh "chmod a+x sql_exporter sql_exporter.exe sql_exporter_arm64"
                     sh "tar -cvzf mssql_exporter_${env.GitTag}.tar.gz sql_exporter sql_exporter.exe sql_exporter_arm64 mssql_standard.collector.yml sql_exporter.yml"
                     minio bucket: "release", credentialsId: "minio", excludes: "", host: "http://10.10.25.66:9000/", includes: "mssql_exporter_${env.GitTag}.tar.gz", targetFolder: "monitor_plugin/mssql/binary"
                 }
