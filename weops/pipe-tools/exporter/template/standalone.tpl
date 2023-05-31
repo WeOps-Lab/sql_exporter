@@ -62,6 +62,12 @@ spec:
       - name: mssql-exporter-standalone-{{VERSION}}
         image: registry-svc:25000/library/mssql-exporter:latest
         imagePullPolicy: Always
+        env:
+        - name: SQLEXPORTER_TARGET_DSN
+          valueFrom:
+            configMapKeyRef:
+              name: mssql-dsn
+              key: DATA_SOURCE_NAME_{{VERSION}}
         securityContext:
           allowPrivilegeEscalation: false
           runAsUser: 0
