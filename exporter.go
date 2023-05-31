@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/burningalchemist/sql_exporter/config"
@@ -14,7 +15,14 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const envDsnOverride = "SQLEXPORTER_TARGET_DSN"
+var (
+	dbType   = os.Getenv("SQL_EXPORTER_DB_TYPE")
+	user     = os.Getenv("SQL_EXPORTER_USER")
+	password = os.Getenv("SQL_EXPORTER_PASS")
+	host     = os.Getenv("SQL_EXPORTER_HOST")
+	port     = os.Getenv("SQL_EXPORTER_PORT")
+	dbName   = os.Getenv("SQL_EXPORTER_DB_NAME")
+)
 
 var dsnOverride = flag.String("config.data-source-name", "", "Data source name to override the value in the configuration file with.")
 
@@ -43,9 +51,19 @@ func NewExporter(configFile string) (Exporter, error) {
 		return nil, err
 	}
 
-	if val, ok := os.LookupEnv(envDsnOverride); ok {
-		*dsnOverride = val
+	commonDSN := fmt.Sprintf("%v:%v@%v:%v", user, password, host, port)
+
+	switch strings.ToLower(dbType) {
+	case "mysql":
+		*dsnOverride = fmt.Sprintf("mysql://%v", commonDSN)
+	case "postgres":
+		*dsnOverride = fmt.Sprintf("postgres://%v/%v?sslmode=disable", commonDSN, dbName)
+	case "oracle":
+		*dsnOverride = fmt.Sprintf("oracle://%v/%v", commonDSN, dbName)
+	case "sqlserver":
+		*dsnOverride = fmt.Sprintf("sqlserver://%v", commonDSN)
 	}
+
 	// Override the DSN if requested (and in single target mode).
 	if *dsnOverride != "" {
 		if len(c.Jobs) > 0 {

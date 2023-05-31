@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-dsn
+  namespace: sql-exporter
+data:
+  SQL_EXPORTER_DB_TYPE: "mysql"
+  SQL_EXPORTER_USER: "weops"
+  SQL_EXPORTER_PASS: "Weops123!"
+  SQL_EXPORTER_HOST: "mysql-cluster-v5-7-primary.mysql"
+  SQL_EXPORTER_PORT: "3306"

@@ -13,7 +13,7 @@ data:
       max_connection_lifetime: 5m
 
     target:
-      data_source_name: 'sqlserver://monitoring_user:Weops123!@mssqlserver-2022.mssql:1433'
+      data_source_name: 'sqlserver://demo:Weops123!@mssqlserver-2022.mssql:1433'
       collectors: [mssql_*]
 
     collector_files:

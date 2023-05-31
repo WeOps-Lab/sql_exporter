@@ -13,7 +13,7 @@ data:
       max_connection_lifetime: 5m
 
     target:
-      data_source_name: 'mysql://weops:Weops123!@mysql-cluster-v5-7-primary.mysql:3306'
+      data_source_name: 'mysql://demo:Weops123!@mysql-cluster-v5-7-primary.mysql:3306'
       collectors: [mysql_*]
 
     collector_files:

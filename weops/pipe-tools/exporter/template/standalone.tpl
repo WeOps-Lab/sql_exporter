@@ -60,6 +60,9 @@ spec:
       - name: sql-exporter-{{SQL_OBJECT}}
         image: registry-svc:25000/library/sql-exporter:latest
         imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: {{SQL_OBJECT}}-dsn
         securityContext:
           allowPrivilegeEscalation: false
           runAsUser: 0
