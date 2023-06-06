@@ -5,23 +5,31 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"os"
-	"strings"
-	"sync"
-
 	"github.com/burningalchemist/sql_exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/model"
 	"google.golang.org/protobuf/proto"
+	"k8s.io/klog/v2"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
 
 var (
-	dbType   = os.Getenv("SQL_EXPORTER_DB_TYPE")
-	user     = os.Getenv("SQL_EXPORTER_USER")
-	password = os.Getenv("SQL_EXPORTER_PASS")
-	host     = os.Getenv("SQL_EXPORTER_HOST")
-	port     = os.Getenv("SQL_EXPORTER_PORT")
-	dbName   = os.Getenv("SQL_EXPORTER_DB_NAME")
+	dbType                = os.Getenv("SQL_EXPORTER_DB_TYPE")
+	user                  = os.Getenv("SQL_EXPORTER_USER")
+	password              = os.Getenv("SQL_EXPORTER_PASS")
+	host                  = os.Getenv("SQL_EXPORTER_HOST")
+	port                  = os.Getenv("SQL_EXPORTER_PORT")
+	dbName                = os.Getenv("SQL_EXPORTER_DB_NAME")
+	scrapeTimeoutOffset   = os.Getenv("SCRAPE_TIMEOUT")
+	minInterval           = os.Getenv("MIN_INTERVAL")
+	maxConnections        = os.Getenv("MAX_CONNECTION")
+	maxIdleConnections    = os.Getenv("MAX_IDLE_CONNECTION")
+	maxConnectionLifetime = os.Getenv("MAX_CONNECTION_LIFE_TIME")
 )
 
 var dsnOverride = flag.String("config.data-source-name", "", "Data source name to override the value in the configuration file with.")
@@ -70,6 +78,51 @@ func NewExporter(configFile string) (Exporter, error) {
 			return nil, fmt.Errorf("the config.data-source-name flag (value %q) only applies in single target mode", *dsnOverride)
 		}
 		c.Target.DSN = config.Secret(*dsnOverride)
+	}
+
+	if scrapeTimeoutOffset != "" {
+		timeoutOffset, err := model.ParseDuration(scrapeTimeoutOffset)
+		if err == nil {
+			c.Globals.ScrapeTimeout = timeoutOffset
+		} else {
+			klog.Errorf("error parse scrapeTimeoutOffset: %v", scrapeTimeoutOffset)
+		}
+	}
+
+	if minInterval != "" {
+		interval, err := model.ParseDuration(minInterval)
+		if err == nil {
+			c.Globals.MinInterval = interval
+		} else {
+			klog.Errorf("error parse minInterval: %v", minInterval)
+		}
+	}
+
+	if maxConnections != "" {
+		connection, err := strconv.Atoi(maxConnections)
+		if err == nil {
+			c.Globals.MaxConns = connection
+		} else {
+			klog.Errorf("error parse maxConnections: %v", maxConnections)
+		}
+	}
+
+	if maxIdleConnections != "" {
+		idleConnection, err := strconv.Atoi(maxIdleConnections)
+		if err == nil {
+			c.Globals.MaxIdleConns = idleConnection
+		} else {
+			klog.Errorf("error parse maxIdleConnections: %v", maxIdleConnections)
+		}
+	}
+
+	if maxConnectionLifetime != "" {
+		connectLife, err := time.ParseDuration(maxConnectionLifetime)
+		if err == nil {
+			c.Globals.MaxConnLifetime = connectLife
+		} else {
+			klog.Errorf("error parse maxConnectionLifetime: %v", maxConnectionLifetime)
+		}
 	}
 
 	var targets []Target
