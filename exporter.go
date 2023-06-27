@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/common/model"
 	"google.golang.org/protobuf/proto"
 	"k8s.io/klog/v2"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -20,8 +21,8 @@ import (
 
 var (
 	dbType                = os.Getenv("SQL_EXPORTER_DB_TYPE")
-	user                  = os.Getenv("SQL_EXPORTER_USER")
-	password              = os.Getenv("SQL_EXPORTER_PASS")
+	user                  = url.QueryEscape(os.Getenv("SQL_EXPORTER_USER"))
+	password              = url.QueryEscape(os.Getenv("SQL_EXPORTER_PASS"))
 	host                  = os.Getenv("SQL_EXPORTER_HOST")
 	port                  = os.Getenv("SQL_EXPORTER_PORT")
 	dbName                = os.Getenv("SQL_EXPORTER_DB_NAME")
