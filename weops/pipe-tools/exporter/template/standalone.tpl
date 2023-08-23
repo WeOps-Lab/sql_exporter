@@ -63,15 +63,21 @@ spec:
         image: registry-svc:25000/library/mssql-exporter:latest
         imagePullPolicy: Always
         env:
-        - name: SQLEXPORTER_TARGET_DSN
+        - name: SQLSERVERUSER
+          value: "monitoring_user"
+        - name: SQLSERVERPASSWORD
+          value: "Weops123!"
+        - name: SQLSERVERHOST
           valueFrom:
             configMapKeyRef:
               name: mssql-dsn
-              key: DATA_SOURCE_NAME_{{VERSION}}
+              key: HOST_{{VERSION}}
         securityContext:
           allowPrivilegeEscalation: false
           runAsUser: 0
         args:
+          - --host=$(SQLSERVERHOST)
+          - --port=1433
           - --config.file=/collector/sql_config_{{VERSION}}.yaml
         volumeMounts:
         - mountPath: /collector

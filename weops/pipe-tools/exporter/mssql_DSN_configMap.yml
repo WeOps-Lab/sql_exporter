@@ -4,6 +4,6 @@ metadata:
   name: mssql-dsn
   namespace: mssql
 data:
-  DATA_SOURCE_NAME_2022: "sqlserver://monitoring_user:Weops123!@mssqlserver-2022.mssql:1433"
-  DATA_SOURCE_NAME_2019: "sqlserver://monitoring_user:Weops123!@mssqlserver-2019.mssql:1433"
-  DATA_SOURCE_NAME_2017: "sqlserver://monitoring_user:Weops123!@mssql-2017-mssql-linux.mssql:1433"
+  HOST_2022: "mssqlserver-2022.mssql"
+  HOST_2019: "mssqlserver-2019.mssql"
+  HOST_2017: "mssql-2017-mssql-linux.mssql"
