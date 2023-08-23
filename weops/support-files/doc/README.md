@@ -16,15 +16,15 @@
 
 
 | **主版本号** | **次版本号** | **指标支持** |
-|----------|----------|----------|
-| 2008     | 10.x     | -        |
-| 2008 R2  | 10.5     | -        |
-| 2012     | 11.x     | -        |
-| 2014     | 12.x     | -        |
-| 2016     | 13.x     | &#10004; |
-| 2017     | 14.x     | &#10004; |
-| 2019     | 15.x     | &#10004; |
-| 2022     | 16.x     | &#10004; |
+| ------------ | ------------ | ------------ |
+| 2008         | 10.x         | -            |
+| 2008 R2      | 10.5         | -            |
+| 2012         | 11.x         | -            |
+| 2014         | 12.x         | -            |
+| 2016         | 13.x         | &#10004;     |
+| 2017         | 14.x         | &#10004;     |
+| 2019         | 15.x         | &#10004;     |
+| 2022         | 16.x         | &#10004;     |
 
 **是否支持远程采集:**
 
@@ -33,13 +33,16 @@
 ### 参数说明
 
 
-| **参数名**                  | **含义**                                                                            | **是否必填** | **使用举例**                                 |
-|--------------------------|-----------------------------------------------------------------------------------|----------|------------------------------------------|
-| SQLEXPORTER_TARGET_DSN | 数据源名称，填写会覆盖配置文件中的数据源data_source_name,**注意！在监控平台填写参数时不要用双引号将参数包起来**                | 是        | sqlserver://user:password@127.0.0.1:1433 |
-| -config.file             | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等                          | 是        | 默认已有采集器全局配置文件                            |
-| -log.level               | 日志级别                                                                              | 否        | info                                     |
-| -web.listen-address      | exporter监听id及端口地址                                                                 | 否        | 127.0.0.1:9601                           |
-| collector.file.content   | mssql_standard.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件                           |
+| **参数名**             | **含义**                                                                                                                     | **是否必填** | **使用举例**                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------------------- |
+| -host                  | 数据库主机IP                                                                                                                 | 是           | 127.0.0.1                    |
+| -port                  | 数据库服务端口                                                                                                               | 是           | 1433                         |
+| SQLSERVERUSER          | 数据库用户名(环境变量)                                                                                                       | 是           | SA                           |
+| SQLSERVERPASSWORD      | 数据库密码(环境变量)                                                                                                         | 是           |                              |
+| -config.file           | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等                                | 是           | 默认已有采集器全局配置文件   |
+| -log.level             | 日志级别                                                                                                                     | 否           | info                         |
+| -web.listen-address    | exporter监听id及端口地址                                                                                                     | 否           | 127.0.0.1:9601               |
+| collector.file.content | mssql_standard.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。**注意！该参数为文件参数，非探针执行文件参数！** | 是           | 默认已有标准采集指标配置文件 |
 
 **采集器全局配置文件说明(sql_exporter.yml)**
 
@@ -135,52 +138,58 @@ metrics:
 ### 指标简介
 
 
-| **指标ID**                              | **指标中文名**             | **维度ID**                              | **维度含义**                  | **单位**  |
-|---------------------------------------|-----------------------|---------------------------------------|---------------------------|---------|
-| up                                    | 监控插件运行状态              | -                                     | -                         | -       |
-| mssql_version                         | Mssql版本号              | ProductVersion                        | 产品版本号                     | -       |
-| mssql_instance_uptime                 | Mssql已运行时间            | -                                     | -                         | s       |
-| mssql_database_state                  | Mssql数据库状态            | db                                    | 数据库名称                     | -       |
-| mssql_local_time_seconds              | Mssql本地时间             | -                                     | -                         | s       |
-| mssql_always_on_status                | Mssql AlwaysOn高可用性组状态 | -                                     | -                         | -       |
-| mssql_total_page_file_bytes           | Mssql总页文件字节数          | -                                     | -                         | bytes   |
-| mssql_available_page_file_bytes       | Mssql可用页文件字节数         | -                                     | -                         | bytes   |
-| mssql_available_physical_memory_bytes | Mssql可用物理内存字节数        | -                                     | -                         | bytes   |
-| mssql_os_memory                       | Mssql操作系统内存           | state                                 | 内存状态                      | bytes   |
-| mssql_total_physical_memory_bytes     | Mssql物理内存总字节数         | -                                     | -                         | bytes   |
-| mssql_memory_utilization_percentage   | Mssql内存利用率            | -                                     | -                         | percent |
-| mssql_virtual_memory_bytes            | Mssql虚拟内存字节数          | -                                     | -                         | bytes   |
-| mssql_batch_requests                  | Mssql批量请求             | -                                     | -                         | -       |
-| mssql_processes_blocked               | Mssql进程阻塞数            | -                                     | -                         | -       |
-| mssql_buffer_cache_hit_ratio          | Mssql缓冲区高速缓存命中率       | -                                     | -                         | percent |
-| mssql_checkpoint_pages_sec            | Mssql检查点每秒写入页数        | -                                     | -                         | -       |
-| mssql_io_stall_seconds                | Mssql I/O暂停时间         | db, operation                         | 数据库名称, 操作类型               | s       |
-| mssql_io_stall_total_seconds          | Mssql总I/O暂停时间         | db                                    | 数据库名称                     | s       |
-| mssql_lazy_write_sec                  | Mssql延迟写入时间           | -                                     | -                         | s       |
-| mssql_page_fault_count                | Mssql页面错误次数           | -                                     | -                         | -       |
-| mssql_page_life_expectancy            | Mssql页面寿命期望值          | -                                     | -                         | s       |
-| mssql_page_reads_sec                  | Mssql每秒页读取数           | -                                     | -                         | -       |
-| mssql_page_write_sec                  | Mssql每秒页写入数           | -                                     | -                         | -       |
-| mssql_resident_memory_bytes           | Mssql常驻内存字节数          | -                                     | -                         | bytes   |
-| mssql_client_connections              | Mssql客户端连接数           | db, host                              | 数据库名称, 客户端主机名称            | -       |
-| mssql_connections                     | Mssql连接数              | db                                    | 数据库名称                     | -       |
-| mssql_deadlocks                       | Mssql死锁数              | -                                     | -                         | -       |
-| mssql_transactions                    | Mssql事务数              | db                                    | 数据库名称                     | -       |
-| mssql_kill_connection_errors          | Mssql终止连接错误数          | -                                     | -                         | -       |
-| mssql_user_errors                     | Mssql用户错误数            | -                                     | -                         | -       |
-| mssql_database_filesize               | Mssql数据库文件大小          | db, logical_name, physical_name, type | 数据库名称, 逻辑文件名, 物理文件名, 文件类型 | bytes   |
-| mssql_db_file_used_ratio              | Mssql数据库文件使用率         | db, file_name                         | 数据库名称, 文件名称               | percent |
-| mssql_db_log_file_size                | Mssql数据库日志文件大小        | db, file_name                         | 数据库名称, 文件名称               | bytes   |
-| mssql_last_backup_duration            | Mssql数据库距离最后一次备份时间    | db                                    | 数据库名称                     | days    |
-| mssql_db_log_file_used_ratio          | Mssql数据库日志文件使用率       | db, file_name                         | 数据库名称, 文件名称               | percent |
-| mssql_log_growths                     | Mssql日志增长数            | db                                    | 数据库名称                     | -       |
-| scrape_duration_seconds               | 监控探针最近一次抓取时长          | -                                     | -                         | s       |
+| **指标ID**                            | **指标中文名**                  | **维度ID**                            | **维度含义**                                 | **单位** |
+| ------------------------------------- | ------------------------------- | ------------------------------------- | -------------------------------------------- | -------- |
+| up                                    | 监控插件运行状态                | -                                     | -                                            | -        |
+| mssql_version                         | Mssql版本号                     | ProductVersion                        | 产品版本号                                   | -        |
+| mssql_instance_uptime                 | Mssql已运行时间                 | -                                     | -                                            | s        |
+| mssql_database_state                  | Mssql数据库状态                 | db                                    | 数据库名称                                   | -        |
+| mssql_local_time_seconds              | Mssql本地时间                   | -                                     | -                                            | s        |
+| mssql_always_on_status                | Mssql AlwaysOn高可用性组状态    | -                                     | -                                            | -        |
+| mssql_total_page_file_bytes           | Mssql总页文件字节数             | -                                     | -                                            | bytes    |
+| mssql_available_page_file_bytes       | Mssql可用页文件字节数           | -                                     | -                                            | bytes    |
+| mssql_available_physical_memory_bytes | Mssql可用物理内存字节数         | -                                     | -                                            | bytes    |
+| mssql_os_memory                       | Mssql操作系统内存               | state                                 | 内存状态                                     | bytes    |
+| mssql_total_physical_memory_bytes     | Mssql物理内存总字节数           | -                                     | -                                            | bytes    |
+| mssql_memory_utilization_percentage   | Mssql内存利用率                 | -                                     | -                                            | percent  |
+| mssql_virtual_memory_bytes            | Mssql虚拟内存字节数             | -                                     | -                                            | bytes    |
+| mssql_batch_requests                  | Mssql批量请求                   | -                                     | -                                            | -        |
+| mssql_processes_blocked               | Mssql进程阻塞数                 | -                                     | -                                            | -        |
+| mssql_buffer_cache_hit_ratio          | Mssql缓冲区高速缓存命中率       | -                                     | -                                            | percent  |
+| mssql_checkpoint_pages_sec            | Mssql检查点每秒写入页数         | -                                     | -                                            | -        |
+| mssql_io_stall_seconds                | Mssql I/O暂停时间               | db, operation                         | 数据库名称, 操作类型                         | s        |
+| mssql_io_stall_total_seconds          | Mssql总I/O暂停时间              | db                                    | 数据库名称                                   | s        |
+| mssql_lazy_write_sec                  | Mssql延迟写入时间               | -                                     | -                                            | s        |
+| mssql_page_fault_count                | Mssql页面错误次数               | -                                     | -                                            | -        |
+| mssql_page_life_expectancy            | Mssql页面寿命期望值             | -                                     | -                                            | s        |
+| mssql_page_reads_sec                  | Mssql每秒页读取数               | -                                     | -                                            | -        |
+| mssql_page_write_sec                  | Mssql每秒页写入数               | -                                     | -                                            | -        |
+| mssql_resident_memory_bytes           | Mssql常驻内存字节数             | -                                     | -                                            | bytes    |
+| mssql_client_connections              | Mssql客户端连接数               | db, host                              | 数据库名称, 客户端主机名称                   | -        |
+| mssql_connections                     | Mssql连接数                     | db                                    | 数据库名称                                   | -        |
+| mssql_deadlocks                       | Mssql死锁数                     | -                                     | -                                            | -        |
+| mssql_transactions                    | Mssql事务数                     | db                                    | 数据库名称                                   | -        |
+| mssql_kill_connection_errors          | Mssql终止连接错误数             | -                                     | -                                            | -        |
+| mssql_user_errors                     | Mssql用户错误数                 | -                                     | -                                            | -        |
+| mssql_database_filesize               | Mssql数据库文件大小             | db, logical_name, physical_name, type | 数据库名称, 逻辑文件名, 物理文件名, 文件类型 | bytes    |
+| mssql_db_file_used_ratio              | Mssql数据库文件使用率           | db, file_name                         | 数据库名称, 文件名称                         | percent  |
+| mssql_db_log_file_size                | Mssql数据库日志文件大小         | db, file_name                         | 数据库名称, 文件名称                         | bytes    |
+| mssql_last_backup_duration            | Mssql数据库距离最后一次备份时间 | db                                    | 数据库名称                                   | days     |
+| mssql_db_log_file_used_ratio          | Mssql数据库日志文件使用率       | db, file_name                         | 数据库名称, 文件名称                         | percent  |
+| mssql_log_growths                     | Mssql日志增长数                 | db                                    | 数据库名称                                   | -        |
+| scrape_duration_seconds               | 监控探针最近一次抓取时长        | -                                     | -                                            | s        |
 
 ### 版本日志
 
 #### weops_mssql_exporter 3.0.2
 
 - weops调整
+
+#### weops_mssql_exporter 3.1.1
+
+- DSN拆分
+- 隐藏敏感参数
+- 优化探针性能
 
 添加“小嘉”微信即可获取mssql监控指标最佳实践礼包，其他更多问题欢迎咨询
 
