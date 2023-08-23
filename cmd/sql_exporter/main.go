@@ -25,6 +25,10 @@ const (
 )
 
 var (
+	host          = flag.String("host", "127.0.0.1", "sql server host IP address")
+	port          = flag.String("port", "1433", "sql server service port")
+	user          = flag.String("user", os.Getenv("SQLSERVERUSER"), "sql server database account username. Get value from env SQLSERVERUSER")
+	password      = flag.String("password", os.Getenv("SQLSERVERPASSWORD"), "sql server database password. Get value from env SQLSERVERPASSWORD")
 	showVersion   = flag.Bool("version", false, "Print version information")
 	listenAddress = flag.String("web.listen-address", ":9399", "Address to listen on for web interface and telemetry")
 	metricsPath   = flag.String("web.metrics-path", "/metrics", "Path under which to expose metrics")
@@ -77,7 +81,7 @@ func main() {
 
 	klog.Warningf("Starting SQL exporter %s %s", version.Info(), version.BuildContext())
 
-	exporter, err := sql_exporter.NewExporter(*configFile)
+	exporter, err := sql_exporter.NewExporter(*configFile, *host, *port, *user, *password)
 	if err != nil {
 		klog.Fatalf("Error creating exporter: %s", err)
 	}

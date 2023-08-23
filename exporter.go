@@ -14,8 +14,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const envDsnOverride = "SQLEXPORTER_TARGET_DSN"
-
 var dsnOverride = flag.String("config.data-source-name", "", "Data source name to override the value in the configuration file with.")
 
 // Exporter is a prometheus.Gatherer that gathers SQL metrics from targets and merges them with the default registry.
@@ -37,15 +35,18 @@ type exporter struct {
 }
 
 // NewExporter returns a new Exporter with the provided config.
-func NewExporter(configFile string) (Exporter, error) {
+func NewExporter(configFile, host, port, user, password string) (Exporter, error) {
 	c, err := config.Load(configFile)
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := os.LookupEnv(envDsnOverride); ok {
+	if val, ok := os.LookupEnv("SQLEXPORTER_TARGET_DSN"); ok {
 		*dsnOverride = val
+	} else {
+		*dsnOverride = fmt.Sprintf("sqlserver://%v:%v@%v:%v", user, password, host, port)
 	}
+
 	// Override the DSN if requested (and in single target mode).
 	if *dsnOverride != "" {
 		if len(c.Jobs) > 0 {
