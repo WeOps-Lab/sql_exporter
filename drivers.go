@@ -3,5 +3,5 @@
 package sql_exporter
 
 import (
-	_ "github.com/microsoft/go-mssqldb/azuread"
+	_ "github.com/denisenkom/go-mssqldb"
 )
