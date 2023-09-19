@@ -44,7 +44,7 @@ func NewExporter(configFile, host, port, user, password string) (Exporter, error
 	if val, ok := os.LookupEnv("SQLEXPORTER_TARGET_DSN"); ok {
 		*dsnOverride = val
 	} else {
-		*dsnOverride = fmt.Sprintf("sqlserver://%v:%v@%v:%v", user, password, host, port)
+		*dsnOverride = fmt.Sprintf("sqlserver://%v:%v@%v:%v?encrypt=disable", user, password, host, port)
 	}
 
 	// Override the DSN if requested (and in single target mode).
