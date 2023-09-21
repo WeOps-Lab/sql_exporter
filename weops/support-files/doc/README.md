@@ -191,6 +191,10 @@ metrics:
 - 隐藏敏感参数
 - 优化探针性能
 
+#### weops_mssql_exporter 3.1.2
+
+- 修复2014及以下版本sql server连接问题
+
 添加“小嘉”微信即可获取mssql监控指标最佳实践礼包，其他更多问题欢迎咨询
 
 <img src="https://wedoc.canway.net/imgs/img/小嘉.jpg" width="50%" height="50%">
