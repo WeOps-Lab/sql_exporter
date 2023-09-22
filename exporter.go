@@ -70,7 +70,7 @@ func NewExporter(configFile string) (Exporter, error) {
 	case "oracle":
 		*dsnOverride = fmt.Sprintf("oracle://%v/%v", commonDSN, dbName)
 	case "sqlserver":
-		*dsnOverride = fmt.Sprintf("sqlserver://%v", commonDSN)
+		*dsnOverride = fmt.Sprintf("sqlserver://%v?encrypt=disable", commonDSN)
 	}
 
 	// Override the DSN if requested (and in single target mode).
