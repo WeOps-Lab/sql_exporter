@@ -25,7 +25,10 @@ func OpenConnection(ctx context.Context, logContext, dsn string, maxConns, maxId
 
 	url, err = safeParse(dsn)
 	if err != nil {
-		return nil, err
+		url = &dburl.URL{
+			Driver: dbType,
+			DSN:    dsn,
+		}
 	}
 
 	driver := url.Driver

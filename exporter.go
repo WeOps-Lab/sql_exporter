@@ -3,24 +3,26 @@ package sql_exporter
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
+	"github.com/prometheus/common/model"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/burningalchemist/sql_exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 
-	"github.com/prometheus/common/model"
+	_ "github.com/prometheus/common/model"
 	"google.golang.org/protobuf/proto"
 	"k8s.io/klog/v2"
-	"k8s.io/klog/v2"
+
 	"net/url"
 	"os"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
+	_ "strconv"
+	_ "time"
 )
 
 var (
@@ -75,12 +77,72 @@ func NewExporter(configFile string) (Exporter, error) {
 		return nil, err
 	}
 
+	commonDSN := fmt.Sprintf("%v:%v@%v:%v", user, password, host, port)
+
+	switch strings.ToLower(dbType) {
+	case "mysql":
+		*dsnOverride = fmt.Sprintf("mysql://%s", commonDSN)
+	case "postgres":
+		*dsnOverride = fmt.Sprintf("postgres://%s/%s?sslmode=disable", commonDSN, dbName)
+	case "oracle":
+		*dsnOverride = fmt.Sprintf("oracle://%s/%s", commonDSN, dbName)
+	case "sqlserver":
+		*dsnOverride = fmt.Sprintf("sqlserver://%s?encrypt=disable", commonDSN)
+	default:
+		return nil, fmt.Errorf("unsupported database type: %s", dbType)
+	}
+
 	// Override the DSN if requested (and in single target mode).
-	if config.DsnOverride != "" {
+	if *dsnOverride != "" {
 		if len(c.Jobs) > 0 {
 			return nil, errors.New("the config.data-source-name flag only applies in single target mode")
 		}
-		c.Target.DSN = config.Secret(config.DsnOverride)
+		c.Target.DSN = config.Secret(*dsnOverride)
+	}
+
+	if scrapeTimeoutOffset != "" {
+		timeoutOffset, err := model.ParseDuration(scrapeTimeoutOffset)
+		if err == nil {
+			c.Globals.ScrapeTimeout = timeoutOffset
+		} else {
+			klog.Errorf("error parse scrapeTimeoutOffset: %v", scrapeTimeoutOffset)
+		}
+	}
+
+	if minInterval != "" {
+		interval, err := model.ParseDuration(minInterval)
+		if err == nil {
+			c.Globals.MinInterval = interval
+		} else {
+			klog.Errorf("error parse minInterval: %v", minInterval)
+		}
+	}
+
+	if maxConnections != "" {
+		connection, err := strconv.Atoi(maxConnections)
+		if err == nil {
+			c.Globals.MaxConns = connection
+		} else {
+			klog.Errorf("error parse maxConnections: %v", maxConnections)
+		}
+	}
+
+	if maxIdleConnections != "" {
+		idleConnection, err := strconv.Atoi(maxIdleConnections)
+		if err == nil {
+			c.Globals.MaxIdleConns = idleConnection
+		} else {
+			klog.Errorf("error parse maxIdleConnections: %v", maxIdleConnections)
+		}
+	}
+
+	if maxConnectionLifetime != "" {
+		connectLife, err := time.ParseDuration(maxConnectionLifetime)
+		if err == nil {
+			c.Globals.MaxConnLifetime = connectLife
+		} else {
+			klog.Errorf("error parse maxConnectionLifetime: %v", maxConnectionLifetime)
+		}
 	}
 
 	var targets []Target

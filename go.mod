@@ -20,6 +20,7 @@ require (
 	github.com/prometheus/common v0.55.0
 	github.com/prometheus/exporter-toolkit v0.11.0
 	github.com/sethvargo/go-envconfig v1.0.3
+	github.com/sijms/go-ora/v2 v2.8.19
 	github.com/snowflakedb/gosnowflake v1.10.1
 	github.com/vertica/vertica-sql-go v1.3.3
 	github.com/xo/dburl v0.23.1
@@ -30,6 +31,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	gitee.com/chunanyong/dm v1.8.15 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1 // indirect
@@ -76,6 +78,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
