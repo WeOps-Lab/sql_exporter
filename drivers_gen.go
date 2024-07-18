@@ -20,6 +20,7 @@ var driverList = map[string][]string{
 		"github.com/lib/pq",
 		"github.com/microsoft/go-mssqldb/azuread",
 		"github.com/sijms/go-ora/v2",
+		"gitee.com/chunanyong/dm",
 	},
 	"extra": {
 		"github.com/ClickHouse/clickhouse-go/v2",

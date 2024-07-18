@@ -88,6 +88,8 @@ func NewExporter(configFile string) (Exporter, error) {
 		*dsnOverride = fmt.Sprintf("oracle://%s/%s", commonDSN, dbName)
 	case "sqlserver":
 		*dsnOverride = fmt.Sprintf("sqlserver://%s?encrypt=disable", commonDSN)
+	case "dm": //达梦数据库 版本>=8.1.1.126
+		*dsnOverride = fmt.Sprintf("dm://%s", commonDSN)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", dbType)
 	}

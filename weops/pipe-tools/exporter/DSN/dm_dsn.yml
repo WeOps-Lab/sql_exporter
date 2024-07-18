@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dm-dsn
+  namespace: sql-exporter
+data:
+  SQL_EXPORTER_DB_TYPE: "dm"
+  SQL_EXPORTER_USER: "weops"
+  SQL_EXPORTER_PASS: "Weops123!"
+  SQL_EXPORTER_HOST: "dm8.dameng"
+  SQL_EXPORTER_PORT: "5236"
