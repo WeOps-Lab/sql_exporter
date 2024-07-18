@@ -1,16 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/burningalchemist/sql_exporter"
@@ -20,10 +15,17 @@ import (
 )
 
 const (
-	contentTypeHeader     = "Content-Type"
-	contentLengthHeader   = "Content-Length"
-	contentEncodingHeader = "Content-Encoding"
-	acceptEncodingHeader  = "Accept-Encoding"
+	contentTypeHeader     string = "Content-Type"
+	contentLengthHeader   string = "Content-Length"
+	contentEncodingHeader string = "Content-Encoding"
+	acceptEncodingHeader  string = "Accept-Encoding"
+	scrapeTimeoutHeader   string = "X-Prometheus-Scrape-Timeout-Seconds"
+)
+
+const (
+	prometheusHeaderErr = "Failed to parse timeout from Prometheus header"
+	noMetricsGathered   = "No metrics gathered"
+	noMetricsEncoded    = "No metrics encoded"
 )
 
 // ExporterHandlerFor returns an http.Handler for the provided Exporter.
@@ -32,13 +34,29 @@ func ExporterHandlerFor(exporter sql_exporter.Exporter) http.Handler {
 		ctx, cancel := contextFor(req, exporter)
 		defer cancel()
 
+		// Parse the query params and set the job filters if any
+		jobFilters := req.URL.Query()["jobs[]"]
+		exporter.SetJobFilters(jobFilters)
+
 		// Go through prometheus.Gatherers to sanitize and sort metrics.
-		gatherer := prometheus.Gatherers{exporter.WithContext(ctx)}
+		gatherer := prometheus.Gatherers{exporter.WithContext(ctx), sql_exporter.SvcRegistry}
 		mfs, err := gatherer.Gather()
 		if err != nil {
-			klog.Infof("Error gathering metrics: %s", err)
+			switch t := err.(type) {
+			case prometheus.MultiError:
+				for _, err := range t {
+					if errors.Is(err, context.DeadlineExceeded) {
+						klog.Errorf("%s: timeout collecting metrics", err)
+					} else {
+						klog.Errorf("Error gathering metrics: %s", err)
+					}
+				}
+			default:
+				klog.Errorf("Error gathering metrics: %s", err)
+			}
 			if len(mfs) == 0 {
-				http.Error(w, "No metrics gathered, "+err.Error(), http.StatusInternalServerError)
+				klog.Errorf("%s: %s", noMetricsGathered, err)
+				http.Error(w, noMetricsGathered+", "+err.Error(), http.StatusInternalServerError)
 				return
 			}
 		}
@@ -52,19 +70,20 @@ func ExporterHandlerFor(exporter sql_exporter.Exporter) http.Handler {
 		for _, mf := range mfs {
 			if err := enc.Encode(mf); err != nil {
 				errs = append(errs, err)
-				klog.Infof("Error encoding metric family %q: %s", mf.GetName(), err)
+				klog.Errorf("Error encoding metric family %q: %s", mf.GetName(), err)
 			}
 		}
 		if closer, ok := writer.(io.Closer); ok {
 			closer.Close()
 		}
 		if errs.MaybeUnwrap() != nil && buf.Len() == 0 {
-			http.Error(w, "No metrics encoded, "+errs.Error(), http.StatusInternalServerError)
+			klog.Errorf("%s: %s", noMetricsEncoded, errs)
+			http.Error(w, noMetricsEncoded+", "+errs.Error(), http.StatusInternalServerError)
 			return
 		}
 		header := w.Header()
 		header.Set(contentTypeHeader, string(contentType))
-		header.Set(contentLengthHeader, fmt.Sprint(buf.Len()))
+		header.Set(contentLengthHeader, strconv.Itoa(buf.Len()))
 		if encoding != "" {
 			header.Set(contentEncodingHeader, encoding)
 		}
@@ -76,19 +95,14 @@ func contextFor(req *http.Request, exporter sql_exporter.Exporter) (context.Cont
 	timeout := time.Duration(0)
 	configTimeout := time.Duration(exporter.Config().Globals.ScrapeTimeout)
 	// If a timeout is provided in the Prometheus header, use it.
-	if v := req.Header.Get("X-Prometheus-Scrape-Timeout-Seconds"); v != "" {
+	if v := req.Header.Get(scrapeTimeoutHeader); v != "" {
 		timeoutSeconds, err := strconv.ParseFloat(v, 64)
 		if err != nil {
-			parseError := errors.Unwrap(err)
 			switch {
-			case errors.Is(parseError, strconv.ErrSyntax):
-				{
-					klog.Errorf("Failed to parse timeout from Prometheus header: unsupported value")
-				}
-			case errors.Is(parseError, strconv.ErrRange):
-				{
-					klog.Errorf("Failed to parse timeout from Prometheus header: value is out of range")
-				}
+			case errors.Is(err, strconv.ErrSyntax):
+				klog.Errorf("%s: unsupported value", prometheusHeaderErr)
+			case errors.Is(err, strconv.ErrRange):
+				klog.Errorf("%s: value out of range", prometheusHeaderErr)
 			}
 		} else {
 			timeout = time.Duration(timeoutSeconds * float64(time.Second))
@@ -113,34 +127,4 @@ func contextFor(req *http.Request, exporter sql_exporter.Exporter) (context.Cont
 		return context.Background(), func() {}
 	}
 	return context.WithTimeout(context.Background(), timeout)
-}
-
-var bufPool sync.Pool
-
-func getBuf() *bytes.Buffer {
-	buf := bufPool.Get()
-	if buf == nil {
-		return &bytes.Buffer{}
-	}
-	return buf.(*bytes.Buffer)
-}
-
-func giveBuf(buf *bytes.Buffer) {
-	buf.Reset()
-	bufPool.Put(buf)
-}
-
-// decorateWriter wraps a writer to handle gzip compression if requested.  It
-// returns the decorated writer and the appropriate "Content-Encoding" header
-// (which is empty if no compression is enabled).
-func decorateWriter(request *http.Request, writer io.Writer) (w io.Writer, encoding string) {
-	header := request.Header.Get(acceptEncodingHeader)
-	parts := strings.Split(header, ",")
-	for _, part := range parts {
-		part := strings.TrimSpace(part)
-		if part == "gzip" || strings.HasPrefix(part, "gzip;") {
-			return gzip.NewWriter(writer), "gzip"
-		}
-	}
-	return writer, ""
 }

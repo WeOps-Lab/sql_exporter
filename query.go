@@ -28,13 +28,14 @@ type (
 )
 
 const (
-	columnTypeKey   = 1
-	columnTypeValue = 2
+	columnTypeKey   columnType = 1
+	columnTypeValue columnType = 2
+	columnTypeTime  columnType = 3
 )
 
 // NewQuery returns a new Query that will populate the given metric families.
 func NewQuery(logContext string, qc *config.QueryConfig, metricFamilies ...*MetricFamily) (*Query, errors.WithContext) {
-	logContext = fmt.Sprintf("%s, query=%q", logContext, qc.Name)
+	logContext = TrimMissingCtx(fmt.Sprintf(`%s,query=%s`, logContext, qc.Name))
 
 	columnTypes := make(columnTypeMap)
 
@@ -46,6 +47,11 @@ func NewQuery(logContext string, qc *config.QueryConfig, metricFamilies ...*Metr
 		}
 		for _, vcol := range mf.config.Values {
 			if err := setColumnType(logContext, vcol, columnTypeValue, columnTypes); err != nil {
+				return nil, err
+			}
+		}
+		if mf.config.TimestampValue != "" {
+			if err := setColumnType(logContext, mf.config.TimestampValue, columnTypeTime, columnTypes); err != nil {
 				return nil, err
 			}
 		}
@@ -77,6 +83,7 @@ func setColumnType(logContext, columnName string, ctype columnType, columnTypes 
 func (q *Query) Collect(ctx context.Context, conn *sql.DB, ch chan<- Metric) {
 	if ctx.Err() != nil {
 		ch <- NewInvalidMetric(errors.Wrap(q.logContext, ctx.Err()))
+
 		return
 	}
 	rows, err := q.run(ctx, conn)
@@ -88,6 +95,10 @@ func (q *Query) Collect(ctx context.Context, conn *sql.DB, ch chan<- Metric) {
 
 	dest, err := q.scanDest(rows)
 	if err != nil {
+		if config.IgnoreMissingVals {
+			klog.V(3).Info(err)
+			return
+		}
 		ch <- NewInvalidMetric(err)
 		return
 	}
@@ -112,6 +123,11 @@ func (q *Query) run(ctx context.Context, conn *sql.DB) (*sql.Rows, errors.WithCo
 		panic(fmt.Sprintf("[%s] Expecting to always run on the same database handle", q.logContext))
 	}
 
+	if q.config.NoPreparedStatement {
+		rows, err := conn.QueryContext(ctx, q.config.Query)
+		return rows, errors.Wrap(q.logContext, err)
+	}
+
 	if q.stmt == nil {
 		stmt, err := conn.PrepareContext(ctx, q.config.Query)
 		if err != nil {
@@ -126,30 +142,33 @@ func (q *Query) run(ctx context.Context, conn *sql.DB) (*sql.Rows, errors.WithCo
 
 // scanDest creates a slice to scan the provided rows into, with strings for keys, float64s for values and interface{}
 // for any extra columns.
-func (q *Query) scanDest(rows *sql.Rows) ([]interface{}, errors.WithContext) {
+func (q *Query) scanDest(rows *sql.Rows) ([]any, errors.WithContext) {
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, errors.Wrap(q.logContext, err)
 	}
-	klog.V(3).Infof(`returned_columns="%v"%v`, columns, q.logContext)
+	klog.V(3).Infof("[%s] Returned columns: %q", q.logContext, columns)
 	// Create the slice to scan the row into, with strings for keys and float64s for values.
-	dest := make([]interface{}, 0, len(columns))
+	dest := make([]any, 0, len(columns))
 	have := make(map[string]bool, len(q.columnTypes))
 	for i, column := range columns {
 		switch q.columnTypes[column] {
 		case columnTypeKey:
-			dest = append(dest, new(string))
+			dest = append(dest, new(sql.NullString))
 			have[column] = true
 		case columnTypeValue:
-			dest = append(dest, new(float64))
+			dest = append(dest, new(sql.NullFloat64))
+			have[column] = true
+		case columnTypeTime:
+			dest = append(dest, new(sql.NullTime))
 			have[column] = true
 		default:
 			if column == "" {
-				klog.Warningf("[%s] Unnamed column %d returned by query", q.logContext, i)
+				klog.Infof("[%s] Unnamed column %d returned by query", q.logContext, i)
 			} else {
-				klog.Warningf("[%s] Extra column %q returned by query", q.logContext, column)
+				klog.Infof("[%s] Extra column %q returned by query", q.logContext, column)
 			}
-			dest = append(dest, new(interface{}))
+			dest = append(dest, new(any))
 		}
 	}
 
@@ -169,7 +188,7 @@ func (q *Query) scanDest(rows *sql.Rows) ([]interface{}, errors.WithContext) {
 
 // scanRow scans the current row into a map of column name to value, with string values for key columns and float64
 // values for value columns, using dest as a buffer.
-func (q *Query) scanRow(rows *sql.Rows, dest []interface{}) (map[string]interface{}, errors.WithContext) {
+func (q *Query) scanRow(rows *sql.Rows, dest []any) (map[string]any, errors.WithContext) {
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, errors.Wrap(q.logContext, err)
@@ -181,13 +200,24 @@ func (q *Query) scanRow(rows *sql.Rows, dest []interface{}) (map[string]interfac
 	}
 
 	// Pick all values we're interested in into a map.
-	result := make(map[string]interface{}, len(q.columnTypes))
+	result := make(map[string]any, len(q.columnTypes))
 	for i, column := range columns {
 		switch q.columnTypes[column] {
 		case columnTypeKey:
-			result[column] = *dest[i].(*string)
+			if !dest[i].(*sql.NullString).Valid {
+				klog.V(3).Infof("[%s] Key column %q is NULL", q.logContext, column)
+			}
+			result[column] = *dest[i].(*sql.NullString)
+		case columnTypeTime:
+			if !dest[i].(*sql.NullTime).Valid {
+				klog.V(3).Infof("[%s] Time column %q is invalid or NULL", q.logContext, column)
+			}
+			result[column] = *dest[i].(*sql.NullTime)
 		case columnTypeValue:
-			result[column] = *dest[i].(*float64)
+			if !dest[i].(*sql.NullFloat64).Valid {
+				klog.V(3).Infof("[%s] Value column %q is NULL", q.logContext, column)
+			}
+			result[column] = *dest[i].(*sql.NullFloat64)
 		}
 	}
 	return result, nil

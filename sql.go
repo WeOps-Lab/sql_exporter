@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/xo/dburl"
@@ -27,17 +28,14 @@ func OpenConnection(ctx context.Context, logContext, dsn string, maxConns, maxId
 		return nil, err
 	}
 
-	// FIXME: currently `dburl` handles `azuresql` scheme as `sqlserver` alias and assigns it as a driver name.
-	// To use Azure AD the upstream driver expects strictly `azuresql` as a driver name. We detect `fedauth`
-	// in a query string, and set the expected driver name.
-	// This might be fixed later in the upstream dependency and removed here.
-	if url.Driver == "sqlserver" && url.Query().Has("fedauth") {
-		url.Driver = "azuresql"
+	driver := url.Driver
+	if url.GoDriver != "" {
+		driver = url.GoDriver
 	}
 
 	// Open the DB handle in a separate goroutine so we can terminate early if the context closes.
 	go func() {
-		conn, err = sql.Open(url.Driver, url.DSN)
+		conn, err = sql.Open(driver, url.DSN)
 		close(ch)
 	}()
 
@@ -58,7 +56,7 @@ func OpenConnection(ctx context.Context, logContext, dsn string, maxConns, maxId
 		if len(logContext) > 0 {
 			logContext = fmt.Sprintf("[%s] ", logContext)
 		}
-		klog.Infof("%sDatabase handle successfully opened with '%s' driver", logContext, url.Driver)
+		klog.Infof("%sDatabase handle successfully opened with '%s' driver", logContext, driver)
 	}
 	return conn, nil
 }
@@ -88,7 +86,8 @@ func PingDB(ctx context.Context, conn *sql.DB) error {
 // if underlying url parse failed. By default it returns a raw url string in error message,
 // which most likely contains a password. It's undesired here.
 func safeParse(rawURL string) (*dburl.URL, error) {
-	parsed, err := dburl.Parse(rawURL)
+
+	parsed, err := dburl.Parse(expandEnv(rawURL))
 	if err != nil {
 		if uerr := new(url.Error); errors.As(err, &uerr) {
 			return nil, uerr.Err
@@ -96,4 +95,16 @@ func safeParse(rawURL string) (*dburl.URL, error) {
 		return nil, errors.New("invalid URL")
 	}
 	return parsed, nil
+}
+
+// expandEnv falls back to the original env variable if not found for better readability
+func expandEnv(env string) string {
+	lookupFunc := func(env string) string {
+		if value, ok := os.LookupEnv(env); ok {
+			return value
+		}
+		klog.Errorf("Environment variable '$%s' is not found, cannot expand", env)
+		return fmt.Sprintf("$%s", env)
+	}
+	return os.Expand(env, lookupFunc)
 }
