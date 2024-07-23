@@ -19,7 +19,7 @@
 登录数据库并执行命令创建蓝鲸监控账号和授权：
 
  ```bash
-# 创建账号: weops 密码: Weops123!
+# 创建用户: weops 密码: Weops123!
 CREATE USER weops IDENTIFIED BY "Weops123!";
 # 要获取DB\table级别的监控信息必须拥有对应数据库的select权限
 GRANT SELECT ON v$sessions TO weops;
@@ -67,7 +67,7 @@ GRANT SOI TO weops;
 ### 指标列表
 | **指标ID**                             | **指标中文名**       | **维度ID**                                                 | **维度含义**                  | **单位**  |
 |--------------------------------------|-----------------|----------------------------------------------------------|---------------------------|---------|
-| dm_exporter_up                       | 插件运行状态          | -                                                        | -                         | -       |
+| up                                   | 插件运行状态          | -                                                        | -                         | -       |
 | dm_exporter_connections              | 当前连接数           | -                                                        | -                         | -       |
 | dm_exporter_executions_total         | 执行sql语句总数       | -                                                        | -                         | -       |
 | dm_exporter_session_rests            | 可用会话数           | -                                                        | -                         | -       |
