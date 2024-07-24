@@ -4,6 +4,7 @@ package sql_exporter
 
 import (
 	_ "gitee.com/chunanyong/dm"
+	_ "gitee.com/opengauss/openGauss-connector-go-pq"
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
