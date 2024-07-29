@@ -35,6 +35,9 @@ var driverList = map[string][]string{
 	"dm": {
 		"gitee.com/chunanyong/dm",
 	},
+	"opengauss": {
+		"gitee.com/opengauss/openGauss-connector-go-pq",
+	},
 }
 
 func main() {
