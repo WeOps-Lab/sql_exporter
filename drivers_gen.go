@@ -38,6 +38,9 @@ var driverList = map[string][]string{
 	"opengauss": {
 		"gitee.com/opengauss/openGauss-connector-go-pq",
 	},
+	"gbase8a": {
+		"github.com/go-sql-driver/mysql",
+	},
 }
 
 func main() {
