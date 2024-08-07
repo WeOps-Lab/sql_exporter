@@ -58,7 +58,7 @@ spec:
             name: {{SQL_OBJECT}}-sql-config
       containers:
       - name: sql-exporter-{{SQL_OBJECT}}
-        image: registry-svc:25000/library/sql-exporter:latest
+        image: registry-svc:25000/library/sql-exporter-minimal:latest
         imagePullPolicy: Always
         envFrom:
           - configMapRef:
