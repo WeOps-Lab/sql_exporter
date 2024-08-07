@@ -79,16 +79,16 @@ func NewExporter(configFile string) (Exporter, error) {
 	}
 
 	commonDSN := fmt.Sprintf("%v:%v@%v:%v", user, password, host, port)
+	dbType = strings.ToLower(dbType)
 
-	switch strings.ToLower(dbType) {
-	case "mysql":
-		*dsnOverride = fmt.Sprintf("mysql://%s", commonDSN)
-	case "gbase8a":
+	switch dbType {
+	case "mysql", "gbase8a":
 		// 强制修改为MySQL的驱动
 		dbType = "mysql"
+		// MySQL驱动特殊，不能先用特殊字符转换，直接丢入配置中
 		cfg := mysql.Config{
-			User:                 user,
-			Passwd:               password,
+			User:                 os.Getenv("SQL_EXPORTER_USER"),
+			Passwd:               os.Getenv("SQL_EXPORTER_PASS"),
 			Net:                  "tcp",
 			Addr:                 fmt.Sprintf("%v:%v", host, port),
 			DBName:               dbName,
