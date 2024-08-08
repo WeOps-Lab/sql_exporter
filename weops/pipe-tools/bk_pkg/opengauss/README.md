@@ -26,8 +26,8 @@ CREATE USER weops PASSWORD 'Weops123!';
 
 | **参数名**                | **含义**                                                               | **是否必填** | **使用举例**       |
 |------------------------|----------------------------------------------------------------------|----------|----------------|
-| SQL_EXPORTER_USER      | 数据库用户名(环境变量)                                                         | 是        | SYSDBA         |
-| SQL_EXPORTER_PASS      | 数据库密码(环境变量)                                                          | 是        | SYSDBA001      |
+| SQL_EXPORTER_USER      | 数据库用户名(环境变量)，特殊字符不需要编码转义                                             | 是        | SYSDBA         |
+| SQL_EXPORTER_PASS      | 数据库密码(环境变量)，特殊字符不需要编码转义                                              | 是        | SYSDBA001      |
 | SQL_EXPORTER_DB_TYPE   | 数据库类型(环境变量)                                                          | 是        | dm             |
 | SQL_EXPORTER_HOST      | 数据库服务IP(环境变量)                                                        | 是        | 127.0.0.1      |
 | SQL_EXPORTER_PORT      | 数据库服务端口(环境变量)                                                        | 是        | 5236           |
