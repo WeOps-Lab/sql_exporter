@@ -89,7 +89,7 @@ GRANT SOI TO weops;
 | dm_exporter_shared_pool_size         | 共享内存大小          | -                                                        | -                         | -       |
 | dm_exporter_checkpoint_dirty_pages   | CheckPoint重做日志块 | -                                                        | -                         | -       |
 | dm_exporter_checkpoint_interval_time | CheckPoint间隔时间  | -                                                        | -                         | -       |
-| dm_exporter_index_used_space         | 索引块数            | TABLE_OWNER, TABLE_NAME                                  | 表所有者, 表名称                 | -       |
+| dm_exporter_index_used_space         | 索引块数            | OWNER, INDEX_NAME                                        | 所有者, 索引名称                 | -       |
 | dm_exporter_load_five_average        | 数据库每5分钟工作负载     | -                                                        | -                         | -       |
 | dm_exporter_open_cursor              | 打开的游标数          | -                                                        | -                         | -       |
 | dm_exporter_table_used_space         | 表块数             | OWNER, TABLE_NAME                                        | 所有者, 表名称                  | -       |
@@ -109,3 +109,6 @@ GRANT SOI TO weops;
 
 #### weops_dm_exporter 1.0.1
 - weops调整
+
+#### weops_dm_exporter 1.0.2
+- dm_exporter_index_used_space修复重复维度

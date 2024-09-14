@@ -135,10 +135,10 @@ metrics:
     values:
       - USED_SPACE
     key_labels:
-      - TABLE_OWNER
-      - TABLE_NAME
+      - OWNER
+      - INDEX_NAME
     query: |
-        SELECT a.TABLE_OWNER, A.TABLE_NAME, INDEX_USED_SPACE(object_id) AS USED_SPACE FROM dba_indexes a, dba_objects b WHERE a.owner = b.owner AND a.index_name = b.object_name AND a.owner NOT IN ('SYS', 'SYSSSO', 'SYSAUDITOR', 'CTISYS')
+        SELECT a.OWNER, A.INDEX_NAME, INDEX_USED_SPACE(object_id) AS USED_SPACE FROM dba_indexes a, dba_objects b WHERE a.owner = b.owner AND a.index_name = b.object_name AND a.owner NOT IN ('SYS', 'SYSSSO', 'SYSAUDITOR', 'CTISYS')
 
   - metric_name: dm_exporter_shared_pool_size
     type: gauge
