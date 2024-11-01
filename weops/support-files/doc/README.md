@@ -199,6 +199,6 @@ metrics:
 
 - 更正部分官方解释不准确的指标
 
-添加“小嘉”微信即可获取mssql监控指标最佳实践礼包，其他更多问题欢迎咨询
+#### weops_mssql_exporter 3.1.4
 
-<img src="https://wedoc.canway.net/imgs/img/小嘉.jpg" width="50%" height="50%">
+- 新增内置部分计算指标
