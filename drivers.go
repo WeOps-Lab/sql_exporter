@@ -13,4 +13,5 @@ import (
 	_ "github.com/sijms/go-ora/v2"
 	_ "github.com/snowflakedb/gosnowflake"
 	_ "github.com/vertica/vertica-sql-go"
+	_ "kingbase.com/gokb"
 )

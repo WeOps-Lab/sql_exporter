@@ -38,6 +38,7 @@ var (
 	host                  = os.Getenv("SQL_EXPORTER_HOST")
 	port                  = os.Getenv("SQL_EXPORTER_PORT")
 	dbName                = os.Getenv("SQL_EXPORTER_DB_NAME")
+	timeout               = os.Getenv("SQL_EXPORTER_TIMEOUT")
 	scrapeTimeoutOffset   = os.Getenv("SCRAPE_TIMEOUT")
 	minInterval           = os.Getenv("MIN_INTERVAL")
 	maxConnections        = os.Getenv("MAX_CONNECTION")
@@ -105,6 +106,8 @@ func NewExporter(configFile string) (Exporter, error) {
 		*dsnOverride = fmt.Sprintf("sqlserver://%s?encrypt=disable", commonDSN)
 	case "dm": //达梦数据库 版本>=8.1.1.126
 		*dsnOverride = fmt.Sprintf("dm://%s", commonDSN)
+	case "kingbase": // 人大金仓数据库
+		*dsnOverride = fmt.Sprintf("kingbase://%s/%s?sslmode=disable&connect_timeout=%s", commonDSN, dbName, timeout)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", dbType)
 	}

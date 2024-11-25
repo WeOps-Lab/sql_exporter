@@ -65,7 +65,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
-	github.com/dave/jennifer v1.7.0 // indirect
+	github.com/dave/jennifer v1.7.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/elastic/go-sysinfo v1.8.1 // indirect
@@ -123,6 +123,10 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
+	kingbase.com/gokb v0.0.0-00010101000000-000000000000 // indirect
 )
 
-replace k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.4.0
+replace (
+	k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.4.0
+	kingbase.com/gokb => ./driver_package/kingbase.com/gokb
+)
