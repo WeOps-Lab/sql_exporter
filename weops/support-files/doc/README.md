@@ -202,3 +202,7 @@ metrics:
 #### weops_mssql_exporter 3.1.4
 
 - 新增内置部分计算指标
+
+#### weops_mssql_exporter 3.1.5
+
+- 修复mssql_last_backup_duration指标维度缺失问题
