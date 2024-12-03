@@ -313,6 +313,7 @@ metrics:
   - metric_name: mssql_last_backup_duration
     type: gauge
     help: "The time elapsed since the last backup of each SQL Server database."
+    key_labels: [db]
     values: [db_last_backup_duration]
     query: |
       SELECT
@@ -320,7 +321,7 @@ metrics:
           CONVERT(VARCHAR, Datediff(DAY, BS.bdate, Getdate()), 120),
           -1
         ),
-        [db_name] = D.NAME
+        [db] = D.NAME
       FROM
         sys.databases D
         LEFT JOIN (
