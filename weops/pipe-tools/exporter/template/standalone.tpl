@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: sql-exporter-{{SQL_OBJECT}}
-  namespace: sql-exporter
+  name: mssql-exporter-standalone-{{VERSION}}
+  namespace: mssql
 spec:
-  serviceName: sql-exporter-{{SQL_OBJECT}}
+  serviceName: mssql-exporter-standalone-{{VERSION}}
   replicas: 1
   selector:
     matchLabels:
-      app: sql-exporter-{{SQL_OBJECT}}
+      app: mssql-exporter-standalone-{{VERSION}}
   template:
     metadata:
       annotations:
@@ -45,32 +45,43 @@ spec:
         telegraf.influxdata.com/limits-cpu: '300m'
         telegraf.influxdata.com/limits-memory: '300Mi'
       labels:
-        app: sql-exporter-{{SQL_OBJECT}}
-        exporter_type: sql-exporter
+        app: mssql-exporter-standalone-{{VERSION}}
+        exporter_object: mssql
+        object_mode: standalone
+        object_version: '{{VERSION}}'
         pod_type: exporter
     spec:
       nodeSelector:
         node-role: worker
       shareProcessNamespace: true
       volumes:
-        - name: {{SQL_OBJECT}}-sql-config
+        - name: mssql-collector
           configMap:
-            name: {{SQL_OBJECT}}-sql-config
+            name: mssql-collector
       containers:
-      - name: sql-exporter-{{SQL_OBJECT}}
-        image: registry-svc:25000/library/sql-exporter-minimal:latest
+      - name: mssql-exporter-standalone-{{VERSION}}
+        image: registry-svc:25000/library/mssql-exporter:latest
         imagePullPolicy: Always
-        envFrom:
-          - configMapRef:
-              name: {{SQL_OBJECT}}-dsn
+        env:
+        - name: SQLSERVERUSER
+          value: "monitoring_user"
+        - name: SQLSERVERPASSWORD
+          value: "Weops123!"
+        - name: SQLSERVERHOST
+          valueFrom:
+            configMapKeyRef:
+              name: mssql-dsn
+              key: HOST_{{VERSION}}
         securityContext:
           allowPrivilegeEscalation: false
           runAsUser: 0
         args:
-          - --config.file=/collector/{{SQL_OBJECT}}_config.yaml
+          - --host=$(SQLSERVERHOST)
+          - --port=1433
+          - --config.file=/collector/sql_config_{{VERSION}}.yaml
         volumeMounts:
         - mountPath: /collector
-          name: {{SQL_OBJECT}}-sql-config
+          name: mssql-collector
         resources:
           requests:
             cpu: 100m
@@ -86,9 +97,9 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: sql-exporter-{{SQL_OBJECT}}
-  name: sql-exporter-{{SQL_OBJECT}}
-  namespace: sql-exporter
+    app: mssql-exporter-standalone-{{VERSION}}
+  name: mssql-exporter-standalone-{{VERSION}}
+  namespace: mssql
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9399"
@@ -99,4 +110,4 @@ spec:
     protocol: TCP
     targetPort: 9399
   selector:
-    app: sql-exporter-{{SQL_OBJECT}}
+    app: mssql-exporter-standalone-{{VERSION}}

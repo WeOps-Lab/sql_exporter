@@ -8,5 +8,5 @@ ADD . /
 COPY sql_exporter /sql_exporter
 RUN chmod +x /sql_exporter
 
-EXPOSE     9399
+EXPOSE     9121
 ENTRYPOINT [ "/sql_exporter" ]

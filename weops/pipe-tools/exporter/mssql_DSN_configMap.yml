@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-dsn
+  namespace: mssql
+data:
+  HOST_2022: "mssqlserver-2022.mssql"
+  HOST_2019: "mssqlserver-2019.mssql"
+  HOST_2017: "mssql-2017-mssql-linux.mssql"

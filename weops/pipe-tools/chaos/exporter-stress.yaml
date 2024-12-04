@@ -1,8 +1,8 @@
 kind: Schedule
 apiVersion: chaos-mesh.org/v1alpha1
 metadata:
-  namespace: sql-exporter
-  name: sql-exporter-stress
+  namespace: mssql
+  name: mssql-exporter-stress
   annotations:
     experiment.chaos-mesh.org/pause: 'false'
 spec:
@@ -14,15 +14,15 @@ spec:
   stressChaos:
     selector:
       namespaces:
-        - sql-exporter
+        - mssql
       labelSelectors:
         'pod_type': 'exporter'
     mode: all
     stressors:
       memory:
         workers: 2
-        size: 25%
+        size: 40%
       cpu:
         workers: 2
-        load: 25
+        load: 40
     duration: 20s
