@@ -18,7 +18,7 @@ var driverList = map[string][]string{
 	"minimal": {
 		"github.com/go-sql-driver/mysql",
 		"github.com/lib/pq",
-		"github.com/microsoft/go-mssqldb/azuread",
+		"github.com/denisenkom/go-mssqldb",
 		"github.com/sijms/go-ora/v2",
 		"gitee.com/chunanyong/dm",
 		"gitee.com/opengauss/openGauss-connector-go-pq",
@@ -31,6 +31,9 @@ var driverList = map[string][]string{
 	},
 	"custom": {
 		"github.com/mithrandie/csvq-driver",
+	},
+	"mssql": {
+		"github.com/denisenkom/go-mssqldb",
 	},
 	"dm": {
 		"gitee.com/chunanyong/dm",
