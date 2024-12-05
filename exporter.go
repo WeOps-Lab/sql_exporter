@@ -96,7 +96,7 @@ func NewExporter(configFile string) (Exporter, error) {
 			AllowNativePasswords: true,
 		}
 		*dsnOverride = cfg.FormatDSN()
-	case "postgres":
+	case "postgres", "vastbase": // 海量数据库
 		*dsnOverride = fmt.Sprintf("postgres://%s/%s?sslmode=disable", commonDSN, dbName)
 	case "opengauss":
 		*dsnOverride = fmt.Sprintf("opengauss://%s/%s?sslmode=disable", commonDSN, dbName)
