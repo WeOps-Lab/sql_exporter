@@ -20,7 +20,7 @@
 
  ```bash
 # 创建用户: weops 密码: Weops123!
-CREATE USER weops IDENTIFIED BY "Weops123!";
+CREATE USER weops WITH PASSWORD 'Weops123!';
  ```
 
 ### 参数说明
@@ -78,3 +78,5 @@ CREATE USER weops IDENTIFIED BY "Weops123!";
 #### weops_kingbase_exporter 1.3.4
 - weops调整
 
+#### weops_kingbase_exporter 1.3.5
+- 创建监控账户SQL文档内容更正
