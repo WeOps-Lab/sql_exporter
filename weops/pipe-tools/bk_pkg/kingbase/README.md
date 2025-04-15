@@ -29,7 +29,7 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 |------------------------|----------------------------------------------------------------------|----------|----------------|
 | SQL_EXPORTER_USER      | 数据库用户名(环境变量)，特殊字符不需要编码转义                                             | 是        | SYSDBA         |
 | SQL_EXPORTER_PASS      | 数据库密码(环境变量)，特殊字符不需要编码转义                                              | 是        | SYSDBA001      |
-| SQL_EXPORTER_DB_TYPE   | 数据库类型(环境变量)                                                          | 是        | dm             |
+| SQL_EXPORTER_DB_TYPE   | 数据库类型(环境变量)                                                          | 是        | kingbase       |
 | SQL_EXPORTER_HOST      | 数据库服务IP(环境变量)                                                        | 是        | 127.0.0.1      |
 | SQL_EXPORTER_PORT      | 数据库服务端口(环境变量)                                                        | 是        | 5236           |
 | SQL_EXPORTER_TIMEOUT   | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                 | 是        | 5              |
