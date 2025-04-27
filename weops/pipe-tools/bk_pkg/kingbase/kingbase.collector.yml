@@ -5,6 +5,17 @@ collector_name: kingbase_sql
 #min_interval: 0s
 
 metrics:
+  # base
+  - metric_name: kingbase_database_mode
+    type: gauge
+    help: '数据库模式'
+    key_labels:
+      - database_mode
+    values:
+      - value
+    query: |
+      SELECT 1 as value, database_mode FROM (SELECT current_setting('database_mode') as database_mode) t
+
   # connection
   # 告警: conns超过max_connections的80%
   - metric_name: kingbase_exporter_current_connections
