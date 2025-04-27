@@ -24,10 +24,11 @@ const (
 )
 
 var (
-	EnablePing        bool
-	IgnoreMissingVals bool
-	DsnOverride       string
-	TargetLabel       string
+	EnablePing           bool
+	IgnoreMissingVals    bool
+	DsnOverride          string
+	TargetLabel          string
+	kingbaseDatabaseMode = os.Getenv("KINGBASE.DATABASE_MODE")
 )
 
 // Load attempts to parse the given config file and return a Config object.
@@ -177,6 +178,13 @@ func (c *Config) YAML() ([]byte, error) {
 // loadCollectorFiles resolves all collector file globs to files and loads the collectors they define.
 func (c *Config) loadCollectorFiles() error {
 	baseDir := filepath.Dir(c.configFile)
+
+	// pg模式下写死采集sql文件
+	if kingbaseDatabaseMode == "pg" {
+		klog.Warningf("Using pg mode, setting collector files to kingbase.collector.pg.yml")
+		c.CollectorFiles = []string{"kingbase.collector.pg.yml"}
+	}
+
 	for _, cfglob := range c.CollectorFiles {
 		// Resolve relative paths by joining them to the configuration file's directory.
 		if len(cfglob) > 0 && !filepath.IsAbs(cfglob) {
