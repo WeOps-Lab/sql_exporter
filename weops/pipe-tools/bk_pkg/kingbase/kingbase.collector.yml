@@ -319,19 +319,18 @@ queries:
         l.locktype,
         count(l.locktype) filter(
           WHERE
-            granted = 't'
+            granted = true
         ) AS granted_count,
         count(l.locktype) filter(
           WHERE
-            granted != 't'
+            granted = false
         ) AS wait_count
       FROM
         sys_locks l
         LEFT JOIN sys_database dtb ON l.database = dtb.oid
       GROUP BY
         l.locktype,
-        dtb.datname,
-        l.granted
+        dtb.datname
 
   - query_name: system_query
     query: |
