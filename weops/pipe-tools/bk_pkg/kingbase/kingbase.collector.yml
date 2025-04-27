@@ -163,7 +163,7 @@ metrics:
       - datname
       - locktype
     values:
-      - grantedCount
+      - granted_count
     query_ref: lock_query
 
   - metric_name: kingbase_exporter_locks_waiting
@@ -173,7 +173,7 @@ metrics:
       - datname
       - locktype
     values:
-      - waitCount
+      - wait_count
     query_ref: lock_query
 
   # cursor
@@ -192,7 +192,7 @@ metrics:
     key_labels:
       - datname
     values:
-      - CacheHitPercent
+      - cache_hit_percent
     query_ref: system_query
 
   - metric_name: kingbase_exporter_deadlocks
@@ -237,7 +237,7 @@ metrics:
     key_labels:
       - datname
     values:
-      - RollBackPercent
+      - rollback_percent
     query_ref: system_query
 
   # age
@@ -309,11 +309,11 @@ queries:
         count(l.locktype) filter(
           WHERE
             granted = 't'
-        ) AS grantedCount,
+        ) AS granted_count,
         count(l.locktype) filter(
           WHERE
             granted != 't'
-        ) AS waitCount
+        ) AS wait_count
       FROM
         sys_locks l
         LEFT JOIN sys_database dtb ON l.database = dtb.oid
@@ -328,12 +328,12 @@ queries:
         datname,
         CAST (
           blks_hit /(blks_read + blks_hit + 0.000001) * 100.0 AS NUMERIC (5, 2)
-        ) AS CacheHitPercent,
+        ) AS cache_hit_percent,
         deadlocks,
         tup_returned,
         xact_commit,
         xact_rollback,
-        100.0 * xact_rollback /(xact_rollback + xact_commit + 0.000001) AS RollBackPercent
+        100.0 * xact_rollback /(xact_rollback + xact_commit + 0.000001) AS rollback_percent
       FROM
         sys_stat_database
       WHERE
