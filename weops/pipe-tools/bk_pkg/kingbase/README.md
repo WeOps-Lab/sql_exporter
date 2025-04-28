@@ -25,24 +25,27 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 
 ### 参数说明
 
-| **参数名**                | **含义**                                                               | **是否必填** | **使用举例**       |
-|------------------------|----------------------------------------------------------------------|----------|----------------|
-| SQL_EXPORTER_USER      | 数据库用户名(环境变量)，特殊字符不需要编码转义                                             | 是        | SYSDBA         |
-| SQL_EXPORTER_PASS      | 数据库密码(环境变量)，特殊字符不需要编码转义                                              | 是        | SYSDBA001      |
-| SQL_EXPORTER_DB_TYPE   | 数据库类型(环境变量)                                                          | 是        | kingbase       |
-| SQL_EXPORTER_HOST      | 数据库服务IP(环境变量)                                                        | 是        | 127.0.0.1      |
-| SQL_EXPORTER_PORT      | 数据库服务端口(环境变量)                                                        | 是        | 5236           |
-| SQL_EXPORTER_TIMEOUT   | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                 | 是        | 5              |
-| -config.file           | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等             | 是        | 默认已有采集器全局配置文件  |
-| -log.level             | 日志级别                                                                 | 否        | info           |
-| -web.listen-address    | exporter监听id及端口地址                                                    | 否        | 127.0.0.1:9601 |
-| collector.file.content | *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件 |
+| **参数名**                  | **含义**                                                                                                        | **是否必填** | **使用举例**        |
+|--------------------------|---------------------------------------------------------------------------------------------------------------|----------|-----------------|
+| SQL_EXPORTER_USER        | 数据库用户名(环境变量)，特殊字符不需要编码转义                                                                                      | 是        | SYSDBA          |
+| SQL_EXPORTER_PASS        | 数据库密码(环境变量)，特殊字符不需要编码转义                                                                                       | 是        | SYSDBA001       |
+| SQL_EXPORTER_DB_TYPE     | 数据库类型(环境变量)                                                                                                   | 是        | kingbase        |
+| SQL_EXPORTER_HOST        | 数据库服务IP(环境变量)                                                                                                 | 是        | 127.0.0.1       |
+| SQL_EXPORTER_PORT        | 数据库服务端口(环境变量)                                                                                                 | 是        | 5236            |
+| SQL_EXPORTER_TIMEOUT     | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                                                          | 是        | 5               |
+| KINGBASE_DATABASE_MODE   | 人大金仓数据库模式(环境变量)，默认支持oracle、mysql，只有pg模式下才需要填写                                                                 | 否        | pg              |
+| -config.file             | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等                                                      | 是        | 默认已有采集器全局配置文件   |
+| -log.level               | 日志级别                                                                                                          | 否        | info            |
+| -web.listen-address      | exporter监听id及端口地址                                                                                             | 否        | 127.0.0.1:9601  |
+| collector.file.content   | kingbase.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。默认模式支持oracle或mysql。**注意！该参数为文件参数，非探针执行文件参数！**                | 是        | 默认已有标准采集指标配置文件) |
+| kingbase.pg.file.content | kingbase.collector.pg.yml 采集指标配置文件，包含指标名、维度、sql等内容。pg模式(KINGBASE.DATABASE_MODE=pg)。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件  |
 
 
 ### 指标列表
 | **指标ID**                                    | **指标中文名**          | **维度ID**          | **维度含义**   | **单位**  |
 |---------------------------------------------|--------------------|-------------------|------------|---------|
 | up                                          | 插件运行状态             | -                 | -          | -       |
+| kingbase_database_mode                      | 数据库当前模式            | database_mode     | 数据库模式      | -       |
 | kingbase_exporter_current_connections       | 数据库当前连接数           | -                 | -          | -       |
 | kingbase_exporter_max_connections_limit     | 数据库最大连接数限制         | -                 | -          | -       |
 | kingbase_exporter_active_connections        | 数据库活动进程数           | datname           | 数据库名称      | -       |
@@ -75,8 +78,13 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 
 ### 版本日志
 
-#### weops_kingbase_exporter 1.3.4
+#### weops_kingbase_exporter v1.3.4
 - weops调整
 
-#### weops_kingbase_exporter 1.3.5
+#### weops_kingbase_exporter v1.3.5
 - 创建监控账户SQL文档内容更正
+
+#### weops_kingbase_exporter v1.4.1
+- 支持人大金仓pg模式
+- 新增监控指标
+    kingbase_database_mode                       数据库当前模式    
