@@ -28,7 +28,7 @@ var (
 	IgnoreMissingVals    bool
 	DsnOverride          string
 	TargetLabel          string
-	kingbaseDatabaseMode = os.Getenv("KINGBASE.DATABASE_MODE")
+	kingbaseDatabaseMode = os.Getenv("KINGBASE_DATABASE_MODE")
 )
 
 // Load attempts to parse the given config file and return a Config object.
