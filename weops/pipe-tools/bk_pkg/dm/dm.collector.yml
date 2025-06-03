@@ -65,6 +65,14 @@ metrics:
     query: |
         SELECT count(*) AS LOCK_BLOCKS FROM V$LOCK WHERE blocked = 1
 
+  - metric_name: dm_exporter_deadlock_count
+    type: gauge
+    help: '死锁累计数量'
+    values:
+      - DEADLOCK_COUNT
+    query: |
+        SELECT COUNT(*) AS DEADLOCK_COUNT FROM v$deadlock_history
+
   # 表空间
   - metric_name: dm_exporter_tablespace_total_size
     type: gauge
