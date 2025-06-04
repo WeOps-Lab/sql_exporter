@@ -77,6 +77,7 @@ GRANT SOI TO weops;
 | dm_exporter_tablespace_size          | 表空间大小           | TABLESPACE_NAME                                          | 表名称                       | -       |
 | dm_exporter_tablespace_used_size     | 表空间使用大小         | TABLESPACE_NAME                                          | 表名称                       | mb      |
 | dm_exporter_tablespace_rest_size     | 表空间剩余大小         | TABLESPACE_NAME                                          | 表名称                       | mb      |
+| dm_exporter_deadlock_count           | 死锁累计数量          | -                                                        | -                         | -       |
 | dm_exporter_2pc_pending              | 长时间二阶段事务锁个数     | -                                                        | -                         | -       |
 | dm_exporter_locks                    | 获取锁的进程数         | -                                                        | -                         | -       |
 | dm_exporter_lock_blocks              | 等待锁的进程数         | -                                                        | -                         | -       |
@@ -84,7 +85,7 @@ GRANT SOI TO weops;
 | dm_exporter_redo_log_size            | ReDo日志大小        | PATH, STATUS                                             | 路径, 状态                    | mb      |
 | dm_exporter_roll_state               | 回滚状态            | ROLL_TYPE                                                | 类型                        | -       |
 | dm_exporter_roll_size                | 回滚页大小           | ROLL_TYPE                                                | 类型                        | -       |
-| dm_exporter_buffer_cache_hit_ratio   | 缓存命中率           | -                                                        | -                         | percent |
+| dm_exporter_buffer_cache_hit_ratio   | 缓存命中率           | HIT_NAME                                                 | 命中类型                      | percent |
 | dm_exporter_memory_used_size         | 内存使用量           | -                                                        | -                         | mb      |
 | dm_exporter_shared_pool_size         | 共享内存大小          | -                                                        | -                         | -       |
 | dm_exporter_checkpoint_dirty_pages   | CheckPoint重做日志块 | -                                                        | -                         | -       |
@@ -101,14 +102,18 @@ GRANT SOI TO weops;
 | dm_exporter_backup_dw_status         | 主备数据库观测状态       | MAL_HOST, MAL_INST_HOST, INSTANCE_NAME, HOST_NAME, OGUID | 主机, 主机实例, 实例名, 主机名, OGUID | -       |
 | dm_exporter_backup_i_mode            | 主备实例模式          | MAL_HOST, MAL_INST_HOST, INSTANCE_NAME, HOST_NAME, OGUID | 主机, 主机实例, 实例名, 主机名, OGUID | -       |
 | dm_exporter_backup_late_time         | 主备延迟时间          | -                                                        | -                         | s       |
+| scrape_duration_seconds              | 监控探针最近一次抓取时长    | -                                                        | -                         | s       |
 
 
 注意: asm相关指标需要asm架构才能采集
 
 ### 版本日志
 
-#### weops_dm_exporter 1.0.1
+#### weops_dm_exporter v1.0.1
 - weops调整
 
-#### weops_dm_exporter 1.0.2
+#### weops_dm_exporter v1.0.2
 - dm_exporter_index_used_space修复重复维度
+
+#### weops_dm_exporter v1.0.3
+- 新增指标  dm_exporter_deadlock_count            死锁累计数量     
