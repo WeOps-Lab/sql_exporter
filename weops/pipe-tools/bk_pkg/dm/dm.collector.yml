@@ -66,7 +66,7 @@ metrics:
         SELECT count(*) AS LOCK_BLOCKS FROM V$LOCK WHERE blocked = 1
 
   - metric_name: dm_exporter_deadlock_count
-    type: gauge
+    type: count
     help: '死锁累计数量'
     values:
       - DEADLOCK_COUNT
