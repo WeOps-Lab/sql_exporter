@@ -2,9 +2,12 @@ package config
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"github.com/prometheus/common/model"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/sethvargo/go-envconfig"
 	"gopkg.in/yaml.v3"
@@ -19,8 +22,9 @@ const MaxInt32 int = 1<<31 - 1
 const (
 	EnvPrefix string = "SQLEXPORTER_"
 
-	EnvConfigFile string = EnvPrefix + "CONFIG"
-	EnvDebug      string = EnvPrefix + "DEBUG"
+	EnvConfigFile              string = EnvPrefix + "CONFIG"
+	EnvDebug                   string = EnvPrefix + "DEBUG"
+	EmbedSqlExporterConfigFile string = "sql_exporter_embed.yml"
 )
 
 var (
@@ -28,18 +32,33 @@ var (
 	IgnoreMissingVals    bool
 	DsnOverride          string
 	TargetLabel          string
-	kingbaseDatabaseMode = os.Getenv("KINGBASE_DATABASE_MODE")
+	kingbaseDatabaseMode      = os.Getenv("KINGBASE_DATABASE_MODE")
+	useEmbedConfig       bool = true // Use embedded config by default
+	//go:embed sql_exporter_embed.yml
+	sqlExporterConfig embed.FS
 )
 
 // Load attempts to parse the given config file and return a Config object.
-func Load(configFile string) (*Config, error) {
-	klog.Infof("Loading configuration from %s", configFile)
-	buf, err := os.ReadFile(configFile)
+func Load(configFile string, collectorFile string) (*Config, error) {
+	source := configFile
+	var readFn func(string) ([]byte, error)
+	if source == "" {
+		useEmbedConfig = true
+		source = EmbedSqlExporterConfigFile
+		readFn = sqlExporterConfig.ReadFile
+		klog.Infof("Loading configuration from embed file: %s", source)
+	} else {
+		useEmbedConfig = false
+		readFn = os.ReadFile
+		klog.Infof("Loading configuration from: %s", source)
+	}
+
+	buf, err := readFn(source)
 	if err != nil {
 		return nil, err
 	}
 
-	c := Config{configFile: configFile}
+	c := Config{configFile: configFile, collectorFile: collectorFile}
 	err = yaml.Unmarshal(buf, &c)
 	if err != nil {
 		return nil, err
@@ -64,8 +83,9 @@ type Config struct {
 	Jobs           []*JobConfig       `yaml:"jobs,omitempty"`
 	Collectors     []*CollectorConfig `yaml:"collectors,omitempty"`
 
-	configFile string
-
+	configFile     string
+	collectorFile  string
+	useEmbedConfig bool
 	// Catches all undefined fields and must be empty after parsing.
 	XXX map[string]any `yaml:",inline" json:"-"`
 }
@@ -76,6 +96,12 @@ func (c *Config) UnmarshalYAML(unmarshal func(any) error) error {
 	if err := c.unmarshalConfig(unmarshal); err != nil {
 		return err
 	}
+
+	// Apply environment overrides.
+	if useEmbedConfig {
+		c.applyEnvOverrides(c.collectorFile)
+	}
+
 	// Populate global defaults.
 	if err := c.populateGlobalDefaults(); err != nil {
 		return err
@@ -177,7 +203,12 @@ func (c *Config) YAML() ([]byte, error) {
 
 // loadCollectorFiles resolves all collector file globs to files and loads the collectors they define.
 func (c *Config) loadCollectorFiles() error {
-	baseDir := filepath.Dir(c.configFile)
+	var baseDir string
+	if useEmbedConfig {
+		baseDir = "."
+	} else {
+		baseDir = filepath.Dir(c.configFile)
+	}
 
 	// pg模式下写死采集sql文件
 	if kingbaseDatabaseMode == "pg" {
@@ -218,4 +249,19 @@ func (c *Config) loadCollectorFiles() error {
 	}
 
 	return nil
+}
+
+func (c *Config) applyEnvOverrides(collectorFile string) {
+	// sql采集指标文件
+	c.CollectorFiles = []string{collectorFile}
+	// sql采集名称
+	c.Target.CollectorRefs = []string{os.Getenv("COLLECTOR_REFS")}
+
+	// 应用配置
+	SetDurationFromEnv("SCRAPE_TIMEOUT_OFFSET", "500ms", func(d model.Duration) { c.Globals.TimeoutOffset = d })
+	SetDurationFromEnv("MIN_INTERVAL", "0s", func(d model.Duration) { c.Globals.MinInterval = d })
+	SetIntFromEnv("MAX_CONNECTIONS", "3", func(i int) { c.Globals.MaxConns = i })
+	SetIntFromEnv("MAX_IDLE_CONNECTIONS", "3", func(i int) { c.Globals.MaxIdleConns = i })
+	SetTimeDurationFromEnv("MAX_CONNECTION_LIFETIME", "5m", func(d time.Duration) { c.Globals.MaxConnLifetime = d })
+	SetDurationFromEnv("SCRAPE_TIMEOUT", "10s", func(d model.Duration) { c.Globals.ScrapeTimeout = d })
 }

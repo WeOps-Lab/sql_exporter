@@ -2,8 +2,12 @@ package config
 
 import (
 	"fmt"
+	"github.com/prometheus/common/model"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"k8s.io/klog/v2"
 )
@@ -68,4 +72,42 @@ func checkOverflow(m map[string]any, ctx string) error {
 		return fmt.Errorf("unknown fields in %s: %s", ctx, strings.Join(keys, ", "))
 	}
 	return nil
+}
+
+// GetEnvWithDefault 从环境变量获取值，如果为空则使用默认值
+func GetEnvWithDefault(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
+}
+
+// SetDurationFromEnv 从环境变量设置 model.Duration 类型值
+func SetDurationFromEnv(key, defaultVal string, setter func(model.Duration)) {
+	val := GetEnvWithDefault(key, defaultVal)
+	if parsed, err := model.ParseDuration(val); err == nil {
+		setter(parsed)
+	} else {
+		klog.Warningf("Invalid %s: %v", key, err)
+	}
+}
+
+// SetIntFromEnv 从环境变量设置整数类型值
+func SetIntFromEnv(key, defaultVal string, setter func(int)) {
+	val := GetEnvWithDefault(key, defaultVal)
+	if parsed, err := strconv.Atoi(val); err == nil {
+		setter(parsed)
+	} else {
+		klog.Warningf("Invalid %s: %v", key, err)
+	}
+}
+
+// SetTimeDurationFromEnv 从环境变量设置 time.Duration 类型值
+func SetTimeDurationFromEnv(key, defaultVal string, setter func(time.Duration)) {
+	val := GetEnvWithDefault(key, defaultVal)
+	if parsed, err := time.ParseDuration(val); err == nil {
+		setter(parsed)
+	} else {
+		klog.Warningf("Invalid %s: %v", key, err)
+	}
 }

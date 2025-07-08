@@ -73,8 +73,8 @@ type exporter struct {
 }
 
 // NewExporter returns a new Exporter with the provided config.
-func NewExporter(configFile string) (Exporter, error) {
-	c, err := config.Load(configFile)
+func NewExporter(configFile string, collectorFile string) (Exporter, error) {
+	c, err := config.Load(configFile, collectorFile)
 	if err != nil {
 		return nil, err
 	}

@@ -8,10 +8,10 @@ import (
 )
 
 // Reload function is used to reload the exporter configuration without restarting the exporter
-func Reload(e Exporter, configFile *string) error {
+func Reload(e Exporter, configFile *string, collectorFile *string) error {
 	klog.Warning("Reloading collectors has started...")
 	klog.Warning("Connections will not be changed upon the restart of the exporter")
-	configNext, err := cfg.Load(*configFile)
+	configNext, err := cfg.Load(*configFile, *collectorFile)
 	if err != nil {
 		klog.Errorf("Error reading config file - %v", err)
 		return err
