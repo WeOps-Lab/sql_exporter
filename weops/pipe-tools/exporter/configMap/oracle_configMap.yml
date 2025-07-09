@@ -4,23 +4,7 @@ metadata:
   name: oracle-sql-config
   namespace: sql-exporter
 data:
-  oracle_config.yaml: |-
-    global:
-      scrape_timeout_offset: 500ms
-      min_interval: 0s
-      max_connections: 3
-      max_idle_connections: 3
-      max_connection_lifetime: 5m
-
-    target:
-      data_source_name: 'oracle://demo:Weops123!@db21c-oracle-db.oracle:1521/ORCLCDB'
-      collectors: [oracle_*]
-
-    collector_files:
-      - "oracle.collector.yaml"
-
-
-  oracle.collector.yaml: |-
+  oracle.collector.yml: |-
     collector_name: oracle_standard
     metrics:
       - metric_name: oracle_version

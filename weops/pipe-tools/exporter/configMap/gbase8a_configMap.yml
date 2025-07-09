@@ -4,23 +4,7 @@ metadata:
   name: gbase8a-sql-config
   namespace: sql-exporter
 data:
-  gbase8a_config.yaml: |-
-    global:
-      scrape_timeout_offset: 500ms
-      min_interval: 0s
-      max_connections: 3
-      max_idle_connections: 3
-      max_connection_lifetime: 5m
-
-    target:
-      # 不使用
-      data_source_name: 'sqlserver://prom_user:prom_password@dbserver1.example.com:1433'
-      collectors: [gbase8a_*]
-
-    collector_files:
-      - "gbase8a.collector.yaml"
-
-  gbase8a.collector.yaml: |-
+  gbase8a.collector.yml: |-
     # gbase数据库查询结果为小写！
     collector_name: gbase8a_sql
 

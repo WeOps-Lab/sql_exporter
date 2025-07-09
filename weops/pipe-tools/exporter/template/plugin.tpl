@@ -67,7 +67,8 @@ spec:
           allowPrivilegeEscalation: false
           runAsUser: 0
         args:
-          - --config.file=/collector/{{SQL_OBJECT}}_config.yaml
+          - --collector.file=/collector/{{SQL_OBJECT}}.collector.yml
+          - --log.level=debug
         volumeMounts:
         - mountPath: /collector
           name: {{SQL_OBJECT}}-sql-config

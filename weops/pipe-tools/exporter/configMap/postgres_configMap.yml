@@ -4,23 +4,7 @@ metadata:
   name: postgres-sql-config
   namespace: sql-exporter
 data:
-  postgres_config.yaml: |-
-    global:
-      scrape_timeout_offset: 500ms
-      min_interval: 0s
-      max_connections: 3
-      max_idle_connections: 3
-      max_connection_lifetime: 5m
-
-    target:
-      data_source_name: 'postgres://demo:Weops123!@pg-cluster-v15-0-postgresql-primary.postgres:5432/postgres?sslmode=disable'
-      collectors: [postgres_*]
-
-    collector_files:
-      - "postgres.collector.yaml"
-
-
-  postgres.collector.yaml: |-
+  postgres.collector.yml: |-
     collector_name: postgres_standard
     metrics:
       - metric_name: postgres_connections

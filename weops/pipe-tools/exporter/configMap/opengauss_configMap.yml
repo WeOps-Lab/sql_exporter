@@ -4,23 +4,7 @@ metadata:
   name: opengauss-sql-config
   namespace: sql-exporter
 data:
-  opengauss_config.yaml: |-
-    global:
-      scrape_timeout_offset: 500ms
-      min_interval: 0s
-      max_connections: 3
-      max_idle_connections: 3
-      max_connection_lifetime: 5m
-
-    target:
-      # 不使用
-      data_source_name: 'sqlserver://prom_user:prom_password@dbserver1.example.com:1433'
-      collectors: [opengauss_*]
-
-    collector_files:
-      - "opengauss.collector.yaml"
-
-  opengauss.collector.yaml: |-
+  opengauss.collector.yml: |-
         # opengauss数据库查询结果为小写！
         collector_name: opengauss_sql
 

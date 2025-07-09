@@ -4,23 +4,7 @@ metadata:
   name: dm-sql-config
   namespace: sql-exporter
 data:
-  dm_config.yaml: |-
-    global:
-      scrape_timeout_offset: 500ms
-      min_interval: 0s
-      max_connections: 3
-      max_idle_connections: 3
-      max_connection_lifetime: 5m
-
-    target:
-      # 不使用
-      data_source_name: 'sqlserver://prom_user:prom_password@dbserver1.example.com:1433'
-      collectors: [dm_*]
-
-    collector_files:
-      - "dm.collector.yaml"
-
-  dm.collector.yaml: |-
+  dm.collector.yml: |-
         # 达梦数据库查询结果为大写！
         collector_name: dm_sql
 

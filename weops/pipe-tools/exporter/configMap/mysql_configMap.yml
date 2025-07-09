@@ -4,22 +4,7 @@ metadata:
   name: mysql-sql-config
   namespace: sql-exporter
 data:
-  mysql_config.yaml: |-
-    global:
-      scrape_timeout_offset: 500ms
-      min_interval: 0s
-      max_connections: 3
-      max_idle_connections: 3
-      max_connection_lifetime: 5m
-
-    target:
-      data_source_name: 'mysql://demo:Weops123!@mysql-cluster-v5-7-primary.mysql:3306'
-      collectors: [mysql_*]
-
-    collector_files:
-      - "mysql.collector.yaml"
-
-  mysql.collector.yaml: |-
+  mysql.collector.yml: |-
     collector_name: mysql_standard
     metrics:
       - metric_name: mysql_uptime

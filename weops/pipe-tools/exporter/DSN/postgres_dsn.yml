@@ -4,9 +4,17 @@ metadata:
   name: postgres-dsn
   namespace: sql-exporter
 data:
-  SQL_EXPORTER_DB_TYPE: "postgres"
-  SQL_EXPORTER_USER: "weops"
-  SQL_EXPORTER_PASS: "Weops123!"
-  SQL_EXPORTER_HOST: "pg-cluster-v15-0-postgresql-primary.postgres"
+  SQL_EXPORTER_DB_TYPE: postgres
+  SQL_EXPORTER_HOST: pg-cluster-v15-0-postgresql-primary.postgres
+  SQL_EXPORTER_PASS: Weops123!
   SQL_EXPORTER_PORT: "5432"
   SQL_EXPORTER_DB_NAME: "postgres"
+  SQL_EXPORTER_TIMEOUT: "5"
+  SQL_EXPORTER_USER: weops
+  COLLECTOR_REFS: postgres*
+  SCRAPE_TIMEOUT_OFFSET: 500ms
+  MIN_INTERVAL: 1s
+  MAX_CONNECTIONS: "3"
+  MAX_IDLE_CONNECTIONS: "3"
+  MAX_CONNECTION_LIFETIME: 3m
+  SCRAPE_TIMEOUT: 20s
