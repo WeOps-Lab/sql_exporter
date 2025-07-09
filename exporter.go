@@ -102,7 +102,7 @@ func NewExporter(configFile string, collectorFile string) (Exporter, error) {
 		*dsnOverride = fmt.Sprintf("opengauss://%s/%s?sslmode=disable", commonDSN, dbName)
 	case "oracle":
 		*dsnOverride = fmt.Sprintf("oracle://%s/%s", commonDSN, dbName)
-	case "sqlserver":
+	case "sqlserver", "mssql":
 		*dsnOverride = fmt.Sprintf("sqlserver://%s?encrypt=disable", commonDSN)
 	case "dm": //达梦数据库 版本>=8.1.1.126
 		*dsnOverride = fmt.Sprintf("dm://%s", commonDSN)
