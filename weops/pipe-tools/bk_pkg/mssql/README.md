@@ -33,46 +33,19 @@
 ### 参数说明
 
 
-| **参数名**                | **含义**                                                               | **是否必填** | **使用举例**       |
-|------------------------|----------------------------------------------------------------------|----------|----------------|
-| SQL_EXPORTER_USER      | 数据库用户名(环境变量)，特殊字符不需要编码转义                                             | 是        | SA             |
-| SQL_EXPORTER_PASS      | 数据库密码(环境变量)，特殊字符不需要编码转义                                              | 是        |                |
-| SQL_EXPORTER_DB_TYPE   | 数据库类型(环境变量)                                                          | 是        | sqlserver      |
-| SQL_EXPORTER_HOST      | 数据库服务IP(环境变量)                                                        | 是        | 127.0.0.1      |
-| SQL_EXPORTER_PORT      | 数据库服务端口(环境变量)                                                        | 是        | 1433           |
-| -config.file           | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等             | 是        | 默认已有采集器全局配置文件  |
-| -log.level             | 日志级别                                                                 | 否        | info           |
-| -web.listen-address    | exporter监听id及端口地址                                                    | 否        | 127.0.0.1:9601 |
-| collector.file.content | *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件 |
-
-
-**采集器全局配置文件说明(sql_exporter.yml)**
-
-```yaml
-# 全局配置
-global:
-  # sql语句的超时时间，这个值需要比prometheus的 `scrape_timeout` 值要小。如果配置了下方的 scrape_timeout_offset 值，那么最终的超时时间为， min(scrape_timeout, X-Prometheus-Scrape-Timeout-Seconds - scrape_timeout_offset)
-  # X-Prometheus-Scrape-Timeout-Seconds 为 prometheus 的超时时间
-  scrape_timeout: 10s
-  # 从 prometheus 的超时时间中减去一个偏移量，防止 prometheus 先超时。
-  scrape_timeout_offset: 500ms
-  # 各个sql收集器之间运行间隔的秒数
-  min_interval: 0s
-  # 允许获取到的数据库最大的连接数， <=0 表示不限制。
-  max_connections: 3
-  # 允许空闲连接数的个数，<=0 不做限制
-  max_idle_connections: 3
-
-# 配置监控的数据库和抓取信息
-target:
-  # 配置数据库链接信息
-  # sqlserver://user(用户名):password(密码)@127.0.0.1(数据库服务域名或者IP):1433(数据库服务端口号)
-  data_source_name: "sqlserver://user:password@127.0.0.1:1433"
-  # 收集器的名字, 对应下方 collector_files 中文件的 collector_name 的值
-  collectors: [mssql_*]
-collector_files: 
-  - "*.collector.yml"
-```
+| **参数名**                 | **含义**                                                      | **是否必填** | **使用举例**       |
+|-------------------------|-------------------------------------------------------------|----------|----------------|
+| SQL_EXPORTER_USER       | 数据库用户名(环境变量)，特殊字符不需要编码转义                                    | 是        | SA             |
+| SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                     | 是        |                |
+| SQL_EXPORTER_DB_TYPE    | 数据库类型(环境变量)                                                 | 是        | sqlserver      |
+| SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                               | 是        | 127.0.0.1      |
+| SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                               | 是        | 1433           |
+| COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                        | 是        | mssql*         |
+| SCRAPE_TIMEOUT          | 采集超时时间                                                      | 否        | 10s            |
+| MAX_CONNECTION_LIFETIME | 最长连接时长                                                      | 否        | 5m             |
+| --collector.file        | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容 | 是        |                |
+| --log.level             | 日志级别                                                        | 否        | info           |
+| --web.listen-address    | exporter监听id及端口地址                                           | 否        | 127.0.0.1:9601 |
 
 **采集指标配置文件(mssql_standard.collector.yml)**
 
@@ -139,47 +112,60 @@ metrics:
 
 ### 指标简介
 
-
-| **指标ID**                              | **指标中文名**             | **维度ID**                              | **维度含义**                  | **单位**  |
-|---------------------------------------|-----------------------|---------------------------------------|---------------------------|---------|
-| up                                    | 监控插件运行状态              | -                                     | -                         | -       |
-| mssql_version                         | Mssql版本号              | ProductVersion                        | 产品版本号                     | -       |
-| mssql_instance_uptime                 | Mssql已运行时间            | -                                     | -                         | s       |
-| mssql_database_state                  | Mssql数据库状态            | db                                    | 数据库名称                     | -       |
-| mssql_local_time_seconds              | Mssql本地时间             | -                                     | -                         | s       |
-| mssql_always_on_status                | Mssql AlwaysOn高可用性组状态 | -                                     | -                         | -       |
-| mssql_total_page_file_bytes           | Mssql总页文件字节数          | -                                     | -                         | bytes   |
-| mssql_available_page_file_bytes       | Mssql可用页文件字节数         | -                                     | -                         | bytes   |
-| mssql_available_physical_memory_bytes | Mssql可用物理内存字节数        | -                                     | -                         | bytes   |
-| mssql_os_memory                       | Mssql操作系统内存           | state                                 | 内存状态                      | bytes   |
-| mssql_total_physical_memory_bytes     | Mssql物理内存总字节数         | -                                     | -                         | bytes   |
-| mssql_memory_utilization_percentage   | Mssql内存利用率            | -                                     | -                         | percent |
-| mssql_virtual_memory_bytes            | Mssql虚拟内存字节数          | -                                     | -                         | bytes   |
-| mssql_batch_requests                  | Mssql批量请求             | -                                     | -                         | -       |
-| mssql_processes_blocked               | Mssql进程阻塞数            | -                                     | -                         | -       |
-| mssql_buffer_cache_hit_ratio          | Mssql缓冲区高速缓存命中率       | -                                     | -                         | percent |
-| mssql_checkpoint_pages_sec            | Mssql检查点写入页数          | -                                     | -                         | -       |
-| mssql_io_stall_seconds                | Mssql I/O暂停时间         | db, operation                         | 数据库名称, 操作类型               | s       |
-| mssql_io_stall_total_seconds          | Mssql总I/O暂停时间         | db                                    | 数据库名称                     | s       |
-| mssql_lazy_write_sec                  | Mssql延迟写入时间           | -                                     | -                         | s       |
-| mssql_page_fault_count                | Mssql页面错误次数           | -                                     | -                         | -       |
-| mssql_page_life_expectancy            | Mssql页面寿命期望值          | -                                     | -                         | s       |
-| mssql_page_reads_sec                  | Mssql页读取数             | -                                     | -                         | -       |
-| mssql_page_write_sec                  | Mssql页写入数             | -                                     | -                         | -       |
-| mssql_resident_memory_bytes           | Mssql常驻内存字节数          | -                                     | -                         | bytes   |
-| mssql_client_connections              | Mssql客户端连接数           | db, host                              | 数据库名称, 客户端主机名称            | -       |
-| mssql_connections                     | Mssql连接数              | db                                    | 数据库名称                     | -       |
-| mssql_deadlocks                       | Mssql死锁数              | -                                     | -                         | -       |
-| mssql_transactions                    | Mssql事务数              | db                                    | 数据库名称                     | -       |
-| mssql_kill_connection_errors          | Mssql终止连接错误数          | -                                     | -                         | -       |
-| mssql_user_errors                     | Mssql用户错误数            | -                                     | -                         | -       |
-| mssql_database_filesize               | Mssql数据库文件大小          | db, logical_name, physical_name, type | 数据库名称, 逻辑文件名, 物理文件名, 文件类型 | bytes   |
-| mssql_db_file_used_ratio              | Mssql数据库文件使用率         | db, file_name                         | 数据库名称, 文件名称               | percent |
-| mssql_db_log_file_size                | Mssql数据库日志文件大小        | db, file_name                         | 数据库名称, 文件名称               | bytes   |
-| mssql_last_backup_duration            | Mssql数据库距离最后一次备份时间    | db                                    | 数据库名称                     | days    |
-| mssql_db_log_file_used_ratio          | Mssql数据库日志文件使用率       | db, file_name                         | 数据库名称, 文件名称               | percent |
-| mssql_log_growths                     | Mssql日志增长数            | db                                    | 数据库名称                     | -       |
-| scrape_duration_seconds               | 监控探针最近一次抓取时长          | -                                     | -                         | s       |
+| **指标ID**                                   | **指标中文名**             | **维度ID**                              | **维度含义**                  | **单位**  | **指标类型** | **计算指标** |
+|--------------------------------------------|-----------------------|---------------------------------------|---------------------------|---------|----------|----------|
+| up                                         | 监控插件运行状态              | -                                     | -                         | -       | gauge    | 原始指标     |
+| mssql_version                              | Mssql版本号              | ProductVersion                        | 产品版本号                     | -       | gauge    | 原始指标     |
+| mssql_instance_uptime                      | Mssql已运行时间            | -                                     | -                         | s       | gauge    | 原始指标     |
+| mssql_database_state                       | Mssql数据库状态            | db                                    | 数据库名称                     | -       | gauge    | 原始指标     |
+| mssql_local_time_seconds                   | Mssql本地时间             | -                                     | -                         | s       | gauge    | 原始指标     |
+| mssql_always_on_status                     | Mssql AlwaysOn高可用性组状态 | -                                     | -                         | -       | gauge    | 原始指标     |
+| mssql_total_page_file_bytes                | Mssql总页文件字节数          | -                                     | -                         | bytes   | gauge    | 原始指标     |
+| mssql_available_page_file_bytes            | Mssql可用页文件字节数         | -                                     | -                         | bytes   | gauge    | 原始指标     |
+| mssql_available_physical_memory_bytes      | Mssql可用物理内存字节数        | -                                     | -                         | bytes   | gauge    | 原始指标     |
+| mssql_os_memory                            | Mssql操作系统内存           | state                                 | 内存状态                      | bytes   | gauge    | 原始指标     |
+| mssql_total_physical_memory_bytes          | Mssql物理内存总字节数         | -                                     | -                         | bytes   | gauge    | 原始指标     |
+| mssql_memory_utilization_percentage        | Mssql内存利用率            | -                                     | -                         | percent | gauge    | 原始指标     |
+| mssql_virtual_memory_bytes                 | Mssql虚拟内存字节数          | -                                     | -                         | bytes   | gauge    | 原始指标     |
+| mssql_batch_requests                       | Mssql批量请求             | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_batch_requests_increase_5min         | Mssql每5分钟增长的批量请求      | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_processes_blocked                    | Mssql进程阻塞数            | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_processes_blocked_increase_5min      | Mssql每5分钟增长的进程阻塞数     | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_buffer_cache_hit_ratio               | Mssql缓冲区高速缓存命中率       | -                                     | -                         | percent | gauge    | 原始指标     |
+| mssql_checkpoint_pages_sec                 | Mssql检查点写入页数          | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_checkpoint_pages_increase_5min       | Mssql每5分钟增长的检查点写入页数   | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_io_stall_seconds                     | Mssql I/O暂停时间         | db, operation                         | 数据库名称, 操作类型               | s       | counter  | 原始指标     |
+| mssql_io_stall_increase_5min               | Mssql每5分钟增长的I/O暂停时间   | db, operation                         | 数据库名称, 操作类型               | s       | gauge    | 衍生指标     |
+| mssql_io_stall_total_seconds               | Mssql总I/O暂停时间         | db                                    | 数据库名称                     | s       | counter  | 原始指标     |
+| mssql_io_stall_total_increase_5min         | Mssql每5分钟增长的总I/O暂停时间  | db                                    | 数据库名称                     | s       | gauge    | 衍生指标     |
+| mssql_lazy_write_sec                       | Mssql延迟写入时间           | -                                     | -                         | s       | counter  | 原始指标     |
+| mssql_lazy_write_increase_5min             | Mssql每5分钟增长的延迟写入时间    | -                                     | -                         | s       | gauge    | 衍生指标     |
+| mssql_page_fault_count                     | Mssql页面错误次数           | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_page_fault_increase_5min             | Mssql每5分钟增长的页面错误次数    | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_page_life_expectancy                 | Mssql页面寿命期望值          | -                                     | -                         | s       | gauge    | 原始指标     |
+| mssql_page_reads_sec                       | Mssql页读取数             | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_page_reads_increase_5min             | Mssql每5分钟增长的页读取数      | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_page_write_sec                       | Mssql页写入数             | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_page_write_increase_5min             | Mssql每5分钟增长的页写入数      | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_resident_memory_bytes                | Mssql常驻内存字节数          | -                                     | -                         | bytes   | gauge    | 原始指标     |
+| mssql_client_connections                   | Mssql客户端连接数           | db, host                              | 数据库名称, 客户端主机名称            | -       | gauge    | 原始指标     |
+| mssql_connections                          | Mssql连接数              | db                                    | 数据库名称                     | -       | gauge    | 原始指标     |
+| mssql_deadlocks                            | Mssql死锁数              | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_deadlocks_increase_5min              | Mssql每5分钟增长的死锁数       | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_transactions                         | Mssql事务数              | db                                    | 数据库名称                     | -       | counter  | 原始指标     |
+| mssql_transactions_increase_5min           | Mssql每5分钟增长的事务数       | db                                    | 数据库名称                     | -       | gauge    | 衍生指标     |
+| mssql_kill_connection_errors               | Mssql终止连接错误数          | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_kill_connection_errors_increase_5min | Mssql每5分钟增长的终止连接错误数   | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_user_errors                          | Mssql用户错误数            | -                                     | -                         | -       | counter  | 原始指标     |
+| mssql_user_errors_increase_5min            | Mssql每5分钟增长的用户错误数     | -                                     | -                         | -       | gauge    | 衍生指标     |
+| mssql_database_filesize                    | Mssql数据库文件大小          | db, logical_name, physical_name, type | 数据库名称, 逻辑文件名, 物理文件名, 文件类型 | bytes   | gauge    | 原始指标     |
+| mssql_db_file_used_ratio                   | Mssql数据库文件使用率         | db, file_name                         | 数据库名称, 文件名称               | percent | gauge    | 原始指标     |
+| mssql_db_log_file_size                     | Mssql数据库日志文件大小        | db, file_name                         | 数据库名称, 文件名称               | bytes   | gauge    | 原始指标     |
+| mssql_last_backup_duration                 | Mssql数据库距离最后一次备份时间    | db                                    | 数据库名称                     | days    | gauge    | 原始指标     |
+| mssql_db_log_file_used_ratio               | Mssql数据库日志文件使用率       | db, file_name                         | 数据库名称, 文件名称               | percent | gauge    | 原始指标     |
+| mssql_log_growths                          | Mssql日志增长数            |                                       | db                        | 数据库名称   | -        | counter  | 原始指标 |
+| mssql_log_growths_increase_5min            | Mssql每5分钟的日志增长数       |                                       | db                        | 数据库名称   | -        | gauge    | 衍生指标 |
+| scrape_duration_seconds                    | 监控探针最近一次抓取时长          | -                                     | -                         | s       | gauge    | 原始指标     |
 
 ### 版本日志
 
@@ -208,3 +194,7 @@ metrics:
 #### weops_mssql_exporter 3.1.5
 
 - 修复mssql_last_backup_duration指标维度缺失问题
+
+#### weops_mssql_exporter 4.1.1
+- 基础探针移除采集器全局配置文件
+- 更新说明文档
