@@ -51,17 +51,19 @@ GRANT SOI TO weops;
 
 ### 参数说明
 
-| **参数名**                | **含义**                                                               | **是否必填** | **使用举例**       |
-|------------------------|----------------------------------------------------------------------|----------|----------------|
-| SQL_EXPORTER_USER      | 数据库用户名(环境变量)，特殊字符不需要编码转义                                             | 是        | SYSDBA         |
-| SQL_EXPORTER_PASS      | 数据库密码(环境变量)，特殊字符不需要编码转义                                              | 是        | SYSDBA001      |
-| SQL_EXPORTER_DB_TYPE   | 数据库类型(环境变量)                                                          | 是        | dm             |
-| SQL_EXPORTER_HOST      | 数据库服务IP(环境变量)                                                        | 是        | 127.0.0.1      |
-| SQL_EXPORTER_PORT      | 数据库服务端口(环境变量)                                                        | 是        | 5236           |
-| -config.file           | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等             | 是        | 默认已有采集器全局配置文件  |
-| -log.level             | 日志级别                                                                 | 否        | info           |
-| -web.listen-address    | exporter监听id及端口地址                                                    | 否        | 127.0.0.1:9601 |
-| collector.file.content | *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件 |
+| **参数名**                 | **含义**                                                      | **是否必填** | **使用举例**       |
+|-------------------------|-------------------------------------------------------------|----------|----------------|
+| SQL_EXPORTER_USER       | 数据库用户名(环境变量)，特殊字符不需要编码转义                                    | 是        | SYSDBA         |
+| SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                     | 是        | SYSDBA001      |
+| SQL_EXPORTER_DB_TYPE    | 数据库类型(环境变量)                                                 | 是        | dm             |
+| SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                               | 是        | 127.0.0.1      |
+| SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                               | 是        | 5236           |
+| COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                        | 是        | dm*            |
+| SCRAPE_TIMEOUT          | 采集超时时间                                                      | 否        | 10s            |
+| MAX_CONNECTION_LIFETIME | 最长连接时长                                                      | 否        | 5m             |
+| --collector.file        | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容 | 是        |                |
+| --log.level             | 日志级别                                                        | 否        | info           |
+| --web.listen-address    | exporter监听id及端口地址                                           | 否        | 127.0.0.1:9601 |
 
 
 ### 指标列表
@@ -74,9 +76,8 @@ GRANT SOI TO weops;
 | dm_exporter_session_used_ratio       | 会话使用率           | -                                                        | -                         | percent |
 | dm_exporter_slow_query               | 超过2秒的慢查询        | -                                                        | -                         | -       |
 | dm_exporter_tablespace_used_ratio    | 表空间使用率          | TABLESPACE_NAME                                          | 表名称                       | percent |
-| dm_exporter_tablespace_size          | 表空间大小           | TABLESPACE_NAME                                          | 表名称                       | -       |
 | dm_exporter_tablespace_used_size     | 表空间使用大小         | TABLESPACE_NAME                                          | 表名称                       | mb      |
-| dm_exporter_tablespace_rest_size     | 表空间剩余大小         | TABLESPACE_NAME                                          | 表名称                       | mb      |
+| dm_exporter_tablespace_free_size     | 表空间剩余大小         | TABLESPACE_NAME                                          | 表名称                       | mb      |
 | dm_exporter_deadlock_count           | 死锁累计数量          | -                                                        | -                         | -       |
 | dm_exporter_2pc_pending              | 长时间二阶段事务锁个数     | -                                                        | -                         | -       |
 | dm_exporter_locks                    | 获取锁的进程数         | -                                                        | -                         | -       |
@@ -117,3 +118,10 @@ GRANT SOI TO weops;
 
 #### weops_dm_exporter v1.0.3
 - 新增指标  dm_exporter_deadlock_count            死锁累计数量     
+
+#### weops_dm_exporter v4.1.1
+- 基础探针移除采集器全局配置文件
+- 更新说明文档
+- 更正指标说明
+  dm_exporter_tablespace_free_size      表空间剩余大小
+  移除dm_exporter_tablespace_size
