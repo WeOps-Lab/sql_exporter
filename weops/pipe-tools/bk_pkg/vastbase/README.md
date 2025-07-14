@@ -42,18 +42,20 @@ GRANT SELECT ON ALL TABLES IN SCHEMA sys TO "weops";
 
 ### 参数说明
 
-| **参数名**                | **含义**                                                               | **是否必填** | **使用举例**       |
-|------------------------|----------------------------------------------------------------------|----------|----------------|
-| SQL_EXPORTER_USER      | 数据库用户名(环境变量)，特殊字符不需要编码转义                                             | 是        | alphay         |
-| SQL_EXPORTER_PASS      | 数据库密码(环境变量)，特殊字符不需要编码转义                                              | 是        | alphay123      |
-| SQL_EXPORTER_DB_TYPE   | 数据库类型(环境变量)                                                          | 是        | vastbase       |
-| SQL_EXPORTER_HOST      | 数据库服务IP(环境变量)                                                        | 是        | 127.0.0.1      |
-| SQL_EXPORTER_PORT      | 数据库服务端口(环境变量)                                                        | 是        | 5432           |
-| SQL_EXPORTER_DB_NAME   | 数据库名称(环境变量)                                                          | 是        | vastbase       |
-| -config.file           | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等             | 是        | 默认已有采集器全局配置文件  |
-| -log.level             | 日志级别                                                                 | 否        | info           |
-| -web.listen-address    | exporter监听id及端口地址                                                    | 否        | 127.0.0.1:9601 |
-| collector.file.content | *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件 |
+| **参数名**                 | **含义**                                                      | **是否必填** | **使用举例**       |
+|-------------------------|-------------------------------------------------------------|----------|----------------|
+| SQL_EXPORTER_USER       | 数据库用户名(环境变量)，特殊字符不需要编码转义                                    | 是        | alphay         |
+| SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                     | 是        | alphay123      |
+| SQL_EXPORTER_DB_TYPE    | 数据库类型(环境变量)                                                 | 是        | vastbase       |
+| SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                               | 是        | 127.0.0.1      |
+| SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                               | 是        | 5432           |
+| SQL_EXPORTER_DB_NAME    | 数据库名称(环境变量)                                                 | 是        | vastbase       |
+| COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                        | 是        | vastbase*      |
+| SCRAPE_TIMEOUT          | 采集超时时间                                                      | 否        | 10s            |
+| MAX_CONNECTION_LIFETIME | 最长连接时长                                                      | 否        | 5m             |
+| --collector.file        | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容 | 是        |                |
+| --log.level             | 日志级别                                                        | 否        | info           |
+| --web.listen-address    | exporter监听id及端口地址                                           | 否        | 127.0.0.1:9601 |
 
 
 ### 指标列表
@@ -126,3 +128,6 @@ GRANT SELECT ON ALL TABLES IN SCHEMA sys TO "weops";
 #### weops_vastbaseG100_exporter 1.1.6
 - weops调整
 
+#### weops_vastbaseG100_exporter 4.1.1
+- 基础探针移除采集器全局配置文件
+- 更新说明文档
