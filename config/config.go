@@ -210,12 +210,6 @@ func (c *Config) loadCollectorFiles() error {
 		baseDir = filepath.Dir(c.configFile)
 	}
 
-	// pg模式下写死采集sql文件
-	if kingbaseDatabaseMode == "pg" {
-		klog.Warningf("Using pg mode, setting collector files to kingbase.collector.pg.yml")
-		c.CollectorFiles = []string{"kingbase.collector.pg.yml"}
-	}
-
 	for _, cfglob := range c.CollectorFiles {
 		// Resolve relative paths by joining them to the configuration file's directory.
 		if len(cfglob) > 0 && !filepath.IsAbs(cfglob) {
@@ -252,8 +246,19 @@ func (c *Config) loadCollectorFiles() error {
 }
 
 func (c *Config) applyEnvOverrides(collectorFile string) {
-	// sql采集指标文件
-	c.CollectorFiles = []string{collectorFile}
+
+	// pg模式下写死采集sql文件
+	if kingbaseDatabaseMode == "pg" {
+		klog.Warningf("Using %s mode, setting collector files to kingbase.collector.pg.yml", kingbaseDatabaseMode)
+		c.CollectorFiles = []string{"kingbase.collector.pg.yml"}
+	} else if kingbaseDatabaseMode == "mysql" || kingbaseDatabaseMode == "oracle" {
+		klog.Warningf("Using %s mode, setting collector files to kingbase.collector.yml", kingbaseDatabaseMode)
+		c.CollectorFiles = []string{"kingbase.collector.yml"}
+	} else {
+		// sql采集指标文件
+		c.CollectorFiles = []string{collectorFile}
+	}
+
 	// sql采集名称
 	c.Target.CollectorRefs = []string{os.Getenv("COLLECTOR_REFS")}
 
