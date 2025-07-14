@@ -7,7 +7,7 @@ for SQL_OBJECT in mysql postgres oracle mssql; do
 done
 
 # 扩展
-for SQL_OBJECT in dm opengauss gbase8a; do
+for SQL_OBJECT in dm opengauss gbase8a vastbase; do
   output_file="sql_exporter_${SQL_OBJECT}.yaml"
   sed "s/{{SQL_OBJECT}}/${SQL_OBJECT}/g" plugin.tpl > ../standalone/${output_file}
 done

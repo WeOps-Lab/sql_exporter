@@ -68,7 +68,7 @@ spec:
           runAsUser: 0
         args:
           - --collector.file=/collector/{{SQL_OBJECT}}.collector.yml
-          - --log.level=debug
+          - --log.level=error
         volumeMounts:
         - mountPath: /collector
           name: {{SQL_OBJECT}}-sql-config
