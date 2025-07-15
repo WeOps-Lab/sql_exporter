@@ -34,11 +34,14 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 | SQL_EXPORTER_PORT        | 数据库服务端口(环境变量)                                                                                                 | 是        | 5236            |
 | SQL_EXPORTER_TIMEOUT     | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                                                          | 是        | 5               |
 | KINGBASE_DATABASE_MODE   | 人大金仓数据库模式(环境变量)，默认支持oracle、mysql，只有pg模式下才需要填写                                                                 | 否        | pg              |
-| -config.file             | sql_exporter.yml 采集器全局配置文件, 包含超时设置、最大连接数、目标配置、采集指标配置文件名等                                                      | 是        | 默认已有采集器全局配置文件   |
-| -log.level               | 日志级别                                                                                                          | 否        | info            |
-| -web.listen-address      | exporter监听id及端口地址                                                                                             | 否        | 127.0.0.1:9601  |
 | collector.file.content   | kingbase.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。默认模式支持oracle或mysql。**注意！该参数为文件参数，非探针执行文件参数！**                | 是        | 默认已有标准采集指标配置文件) |
 | kingbase.pg.file.content | kingbase.collector.pg.yml 采集指标配置文件，包含指标名、维度、sql等内容。pg模式(KINGBASE.DATABASE_MODE=pg)。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件  |
+| COLLECTOR_REFS           | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                                                                          | 是        | kingbase*       |
+| SCRAPE_TIMEOUT           | 采集超时时间                                                                                                        | 否        | 10s             |
+| MAX_CONNECTION_LIFETIME  | 最长连接时长                                                                                                        | 否        | 5m              |
+| --collector.file         | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容                                                   | 是        |                 |
+| --log.level              | 日志级别                                                                                                          | 否        | info            |
+| --web.listen-address     | exporter监听id及端口地址                                                                                             | 否        | 127.0.0.1:9601  |
 
 
 ### 指标列表
@@ -88,3 +91,8 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 - 支持人大金仓pg模式
 - 新增监控指标
     kingbase_database_mode                       数据库当前模式    
+
+#### weops_kingbase_exporter v4.1.1
+- 不需要指定collector.file.content参数
+- 基础探针移除采集器全局配置文件
+- 更新说明文档
