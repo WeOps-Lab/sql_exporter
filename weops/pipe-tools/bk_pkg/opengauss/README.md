@@ -69,7 +69,7 @@ CREATE USER weops PASSWORD 'Weops123!';
 | opengauss_exporter_connections               | 不同状态下的连接数              | datname, state | 数据库名, 连接状态 | -       |
 | opengauss_exporter_connection_used_ratio     | 连接使用率                  | -              | -          | percent |
 | opengauss_exporter_tup_returns               | 进行全表扫描的记录数             | datname        | 数据库名       | -       |
-| opengauss_exporter_deadlocks_deadlocks       | 死锁数                    | datname        | 数据库名       | -       |
+| opengauss_exporter_deadlocks                 | 死锁数                    | datname        | 数据库名       | -       |
 | opengauss_exporter_slow_queries              | 当前慢查询数量                | datname        | 数据库名       | -       |
 | opengauss_exporter_locks                     | 数据库中锁数的数量              | datname, mode  | 数据库名, 锁类型  | -       |
 | scrape_duration_seconds                      | 监控探针最近一次抓取时长           | -              | -          | s       |
