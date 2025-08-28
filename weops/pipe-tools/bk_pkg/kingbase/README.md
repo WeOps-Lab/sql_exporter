@@ -33,7 +33,7 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 | SQL_EXPORTER_HOST        | 数据库服务IP(环境变量)                                                                                                 | 是        | 127.0.0.1       |
 | SQL_EXPORTER_PORT        | 数据库服务端口(环境变量)                                                                                                 | 是        | 5236            |
 | SQL_EXPORTER_TIMEOUT     | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                                                          | 是        | 5               |
-| KINGBASE_DATABASE_MODE   | 人大金仓数据库模式(环境变量)，默认支持oracle、mysql，只有pg模式下才需要填写                                                                 | 否        | pg              |
+| KINGBASE_DATABASE_MODE   | 人大金仓数据库模式(环境变量)，支持oracle、mysql、pg模式                                                                           | 是        | pg              |
 | collector.file.content   | kingbase.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。默认模式支持oracle或mysql。**注意！该参数为文件参数，非探针执行文件参数！**                | 是        | 默认已有标准采集指标配置文件) |
 | kingbase.pg.file.content | kingbase.collector.pg.yml 采集指标配置文件，包含指标名、维度、sql等内容。pg模式(KINGBASE.DATABASE_MODE=pg)。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件  |
 | COLLECTOR_REFS           | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                                                                          | 是        | kingbase*       |
