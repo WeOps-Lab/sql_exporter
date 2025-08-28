@@ -96,3 +96,6 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 - 不需要指定collector.file.content参数
 - 基础探针移除采集器全局配置文件
 - 更新说明文档
+
+#### weops_kingbase_exporter v4.1.2
+- 修复kingbase数据库监控探针无法启动问题
