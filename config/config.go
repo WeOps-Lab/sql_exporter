@@ -250,10 +250,18 @@ func (c *Config) applyEnvOverrides(collectorFile string) {
 	// pg模式下写死采集sql文件
 	if kingbaseDatabaseMode == "pg" {
 		klog.Warningf("Using %s mode, setting collector files to kingbase.collector.pg.yml", kingbaseDatabaseMode)
-		c.CollectorFiles = []string{"kingbase.collector.pg.yml"}
+		collectorFile := "kingbase.collector.pg.yml"
+		if _, err := os.Stat("etc"); err == nil {
+			collectorFile = "etc/" + collectorFile
+		}
+		c.CollectorFiles = []string{collectorFile}
 	} else if kingbaseDatabaseMode == "mysql" || kingbaseDatabaseMode == "oracle" {
 		klog.Warningf("Using %s mode, setting collector files to kingbase.collector.yml", kingbaseDatabaseMode)
-		c.CollectorFiles = []string{"kingbase.collector.yml"}
+		collectorFile := "kingbase.collector.yml"
+		if _, err := os.Stat("etc"); err == nil {
+			collectorFile = "etc/" + collectorFile
+		}
+		c.CollectorFiles = []string{collectorFile}
 	} else {
 		// sql采集指标文件
 		c.CollectorFiles = []string{collectorFile}
