@@ -38,7 +38,7 @@ metrics:
     query: |
         SELECT stat_val/1024/1024 AS MEMORY_USED FROM v$sysstat WHERE name = 'memory used bytes from os'
 
-  - metric_name: dm_exporter_buffer_cache_hit_ratio
+  - metric_name: dm_exporter_buffer_cache_hit_percent
     type: gauge
     help: '缓存命中率(%)'
     values:
@@ -46,7 +46,7 @@ metrics:
     key_labels:
       - HIT_NAME
     query: |
-        SELECT NAME AS HIT_NAME, ROUND(AVG(RAT_HIT), 4) AS HIT_RATE FROM V$BUFFERPOOL GROUP BY NAME
+        SELECT NAME AS HIT_NAME, ROUND(AVG(RAT_HIT) * 100, 2) AS HIT_RATE FROM V$BUFFERPOOL GROUP BY NAME
 
   # 锁
   - metric_name: dm_exporter_locks
@@ -66,7 +66,7 @@ metrics:
         SELECT count(*) AS LOCK_BLOCKS FROM V$LOCK WHERE blocked = 1
 
   - metric_name: dm_exporter_deadlock_count
-    type: count
+    type: gauge
     help: '死锁累计数量'
     values:
       - DEADLOCK_COUNT
@@ -245,7 +245,7 @@ metrics:
         SELECT count(*) AS UNUSABLE FROM dba_indexes WHERE STATUS = 'UNUSABLE'
 
   # asm指标必须为asm模式才能采集
-  - metric_name: dm_exporter_asm_real_used_ratio
+  - metric_name: dm_exporter_asm_real_used_percent
     type: gauge
     help: 'ASM实际空间使用率(%)'
     values:
