@@ -47,6 +47,9 @@ var driverList = map[string][]string{
 	"kingbase": {
 		"kingbase.com/gokb",
 	},
+	"sybase": {
+		"github.com/thda/tds",
+	},
 }
 
 func main() {
