@@ -5,12 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
-	"github.com/prometheus/common/model"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
+	"github.com/prometheus/common/model"
 
 	"github.com/burningalchemist/sql_exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -108,6 +109,8 @@ func NewExporter(configFile string, collectorFile string) (Exporter, error) {
 		*dsnOverride = fmt.Sprintf("dm://%s", commonDSN)
 	case "kingbase": // 人大金仓数据库
 		*dsnOverride = fmt.Sprintf("kingbase://%s/%s?sslmode=disable&connect_timeout=%s", commonDSN, dbName, timeout)
+	case "sybase": //
+		*dsnOverride = fmt.Sprintf("tds://%s", commonDSN)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", dbType)
 	}
