@@ -1,0 +1,351 @@
+collector_name: sybase_sql
+
+# Similar to global.min_interval, but applies to the queries defined by this collector only.
+#min_interval: 0s
+
+metrics:
+  - metric_name: sybase_servername
+    type: gauge
+    help: '服务实例名称'
+    key_labels:
+      - servername
+    values:
+      - value
+    query: |
+      SELECT @@servername as servername, 1 AS value
+
+  # base
+  - metric_name: sybase_uptime_days
+    type: gauge
+    help: '已运行时间(day)'
+    values:
+      - DaysRunning
+    key_labels:
+      - InstanceID
+    query_ref: base_query
+
+  - metric_name: sybase_deadlocks_total
+    type: gauge
+    help: '死锁总数'
+    values:
+      - NumDeadlocks
+    key_labels:
+      - InstanceID
+    query_ref: base_query
+
+  - metric_name: sybase_lock_waits_total
+    type: gauge
+    help: '锁等待总数'
+    values:
+      - LockWaits
+    key_labels:
+      - InstanceID
+    query_ref: base_query
+
+  - metric_name: sybase_connections_total
+    type: gauge
+    help: '连接总数'
+    values:
+      - Connections
+    key_labels:
+      - InstanceID
+    query_ref: base_query
+
+  - metric_name: sybase_transactions_total
+    type: gauge
+    help: '事务总数'
+    values:
+      - Transactions
+    key_labels:
+      - InstanceID
+    query_ref: base_query
+
+  # cache
+  - metric_name: sybase_cache_hit_percent
+    type: gauge
+    help: '缓存命中率(%)'
+    values:
+      - CacheHitPercent
+    key_labels:
+      - InstanceID
+      - CacheName
+    query_ref: cache_query
+
+  - metric_name: sybase_cache_size_kb
+    type: gauge
+    help: '缓存大小(kb)'
+    values:
+      - CacheSize
+    key_labels:
+      - InstanceID
+      - CacheName
+    query_ref: cache_query
+
+  - metric_name: sybase_physical_writes_total
+    type: gauge
+    help: '物理写入总数'
+    values:
+      - PhysicalWrites
+    key_labels:
+      - InstanceID
+      - CacheName
+    query_ref: cache_query
+
+  - metric_name: sybase_buffer_pools
+    type: gauge
+    help: '缓冲池数量'
+    values:
+      - BufferPools
+    key_labels:
+      - InstanceID
+      - CacheName
+    query_ref: cache_query
+
+  - metric_name: sybase_cache_partitions
+    type: gauge
+    help: '缓存分区数量'
+    values:
+      - CachePartitions
+    key_labels:
+      - InstanceID
+      - CacheName
+    query_ref: cache_query
+
+  # DB
+  - metric_name: sybase_last_backup_failed
+    type: gauge
+    help: '上次备份是否失败(1:失败,0:成功)'
+    values:
+      - LastBackupFailed
+    key_labels:
+      - InstanceID
+      - DBName
+    query_ref: DB_query
+
+  - metric_name: sybase_last_backup_duration_seconds
+    type: gauge
+    help: '上次备份到现在的时间差(秒)'
+    values:
+      - LastBackupDateToNowDuration
+    key_labels:
+      - InstanceID
+      - DBName
+    query_ref: DB_query
+
+  - metric_name: sybase_transaction_log_full
+    type: gauge
+    help: '事务日志是否已满(1:已满, 0:未满)'
+    values:
+      - TransactionLogFull
+    key_labels:
+      - InstanceID
+      - DBName
+    query_ref: DB_query
+
+  # device
+  - metric_name: sybase_device_filesystem_used_percent
+    type: gauge
+    help: '设备文件系统使用率(%)'
+    values:
+      - FileSystemUsedPercent
+    key_labels:
+      - InstanceID
+      - LogicalName
+      - PhysicalName
+    query_ref: device_query
+
+  - metric_name: sybase_device_filesystem_free_mb
+    type: gauge
+    help: '设备文件系统空闲空间(MB)'
+    values:
+      - FileSystemFreeMB
+    key_labels:
+      - InstanceID
+      - LogicalName
+      - PhysicalName
+    query_ref: device_query
+
+  - metric_name: sybase_device_size_mb
+    type: gauge
+    help: '设备空间大小(MB)'
+    values:
+      - DeviceSizeMB
+    key_labels:
+      - InstanceID
+      - LogicalName
+      - PhysicalName
+    query_ref: device_query
+
+  # lock
+  - metric_name: sybase_locks_total
+    type: gauge
+    help: '锁总数'
+    values:
+      - LockNums
+    key_labels:
+      - InstanceID
+      - DBName
+      - LockState
+    query_ref: lock_query
+
+  - metric_name: sybase_lock_max_wait_time
+    type: gauge
+    help: '最大等待时间'
+    values:
+      - MaxWaitTime
+    key_labels:
+      - InstanceID
+      - DBName
+      - LockState
+    query_ref: lock_query
+
+
+  # packet
+  - metric_name: sybase_packet_received_total
+    type: gauge
+    help: '接收网络包总数'
+    values:
+      - PacketsReceived
+    key_labels:
+      - InstanceID
+    query_ref: packet_query
+
+  - metric_name: sybase_packet_sent_total
+    type: gauge
+    help: '发送网络包总数'
+    values:
+      - PacketsSent
+    key_labels:
+      - InstanceID
+    query_ref: packet_query
+
+  - metric_name: sybase_bytes_received_total
+    type: gauge
+    help: '接收字节总数'
+    values:
+      - BytesReceived
+    key_labels:
+      - InstanceID
+    query_ref: packet_query
+
+  - metric_name: sybase_bytes_sent_total
+    type: gauge
+    help: '发送字节总数'
+    values:
+      - BytesSent
+    key_labels:
+      - InstanceID
+    query_ref: packet_query
+
+  # thread
+  - metric_name: sybase_threads_active
+    type: gauge
+    help: '活动线程数'
+    values:
+      - ThreadsActive
+    key_labels:
+      - InstanceID
+    query_ref: thread_query
+
+  - metric_name: sybase_thread_worker_memory_bytes
+    type: gauge
+    help: '工作线程内存使用(bytes)'
+    values:
+      - WorkerMemoryBytes
+    key_labels:
+      - InstanceID
+    query_ref: thread_query
+
+  - metric_name: sybase_thread_worker_memory_used_percent
+    type: gauge
+    help: '工作线程内存使用率(%)'
+    values:
+      - WorkerMemoryUsedPercent
+    key_labels:
+      - InstanceID
+    query_ref: thread_query
+
+queries:
+  - query_name: base_query
+    query: |
+      SELECT
+        InstanceID,
+        LockWaits,
+        DaysRunning,
+        NumDeadlocks,
+        Connections,
+        Transactions
+      FROM
+        monState
+
+  - query_name: cache_query
+    query: |
+      SELECT
+        InstanceID,
+        CacheName,
+        BufferPools,
+        CachePartitions,
+        100.0 * LogicalReads / (PhysicalReads + LogicalReads) AS CacheHitPercent,
+        PhysicalWrites,
+        CacheSize
+      FROM
+        monDataCache
+
+  - query_name: DB_query
+    query: |
+      SELECT
+        InstanceID,
+        DBName,
+        LastBackupFailed,
+        DATEDIFF(Second, BackupStartTime, getdate()) as LastBackupDateToNowDuration,
+        TransactionLogFull
+      FROM
+        monOpenDatabases
+
+  - query_name: device_query
+    query: |
+      SELECT
+        InstanceID,
+        LogicalName,
+        PhysicalName,
+        DeviceSizeMB,
+        100 * (FileSystemSizeMB - FileSystemFreeMB) / FileSystemSizeMB as FileSystemUsedPercent,
+        FileSystemFreeMB
+      FROM
+        monDeviceSpaceUsage
+
+  - query_name: lock_query
+    query: |
+      SELECT
+        InstanceID,
+        DBName,
+        LockState,
+        count(*) as LockNums,
+        max(WaitTime) as MaxWaitTime
+      FROM
+        monLocks
+      GROUP BY
+        InstanceID,
+        DBName,
+        LockState
+
+  - query_name: packet_query
+    query: |
+      SELECT
+        InstanceID,
+        PacketsSent,
+        PacketsReceived,
+        BytesSent,
+        BytesReceived
+      FROM
+        monNetworkIO
+
+  - query_name: thread_query
+    query: |
+      SELECT
+        InstanceID,
+        ThreadsActive,
+        WorkerMemory*@@pagesize AS WorkerMemoryBytes,
+        100.0 * WorkerMemory / TotalWorkerMemory AS WorkerMemoryUsedPercent
+      FROM
+        monSysWorkerThread
