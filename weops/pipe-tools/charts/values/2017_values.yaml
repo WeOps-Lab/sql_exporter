@@ -1,0 +1,30 @@
+acceptEula:
+  value: "n"
+edition:
+  value: Developer
+
+# Override sapassword in templates/secret.yaml
+sapassword: "Weops123!"
+
+image:
+  repository: mcr.microsoft.com/mssql/server
+  tag: 2017-latest
+
+nodeSelector:
+  node-role: worker
+
+pod:
+  labels:
+    object: mssql
+    object_version: "2017"
+persistence:
+  enabled: false
+
+resources:
+  limits:
+  #  cpu: 100m
+    memory: 2Gi
+
+service:
+  type: NodePort
+  nodePort: 1435
