@@ -84,7 +84,7 @@ func NewExporter(configFile string, collectorFile string) (Exporter, error) {
 	dbType = strings.ToLower(dbType)
 
 	switch dbType {
-	case "mysql", "gbase8a":
+	case "mysql", "gbase8a", "oceanbase":
 		// 强制修改为MySQL的驱动
 		dbType = "mysql"
 		// MySQL驱动特殊，不能先用特殊字符转换，直接丢入配置中
