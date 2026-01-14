@@ -44,6 +44,9 @@ var driverList = map[string][]string{
 	"gbase8a": {
 		"github.com/go-sql-driver/mysql",
 	},
+	"oceanbase": {
+		"github.com/go-sql-driver/mysql",
+	},
 	"kingbase": {
 		"kingbase.com/gokb",
 	},
