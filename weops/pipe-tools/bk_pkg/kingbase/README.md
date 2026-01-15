@@ -25,23 +25,23 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 
 ### 参数说明
 
-| **参数名**                  | **含义**                                                                                                        | **是否必填** | **使用举例**        |
-|--------------------------|---------------------------------------------------------------------------------------------------------------|----------|-----------------|
-| SQL_EXPORTER_USER        | 数据库用户名(环境变量)，特殊字符不需要编码转义                                                                                      | 是        | SYSDBA          |
-| SQL_EXPORTER_PASS        | 数据库密码(环境变量)，特殊字符不需要编码转义                                                                                       | 是        | SYSDBA001       |
-| SQL_EXPORTER_DB_TYPE     | 数据库类型(环境变量)                                                                                                   | 是        | kingbase        |
-| SQL_EXPORTER_HOST        | 数据库服务IP(环境变量)                                                                                                 | 是        | 127.0.0.1       |
-| SQL_EXPORTER_PORT        | 数据库服务端口(环境变量)                                                                                                 | 是        | 5236            |
-| SQL_EXPORTER_TIMEOUT     | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                                                          | 是        | 5               |
-| KINGBASE_DATABASE_MODE   | 人大金仓数据库模式(环境变量)，支持oracle、mysql、pg模式                                                                           | 是        | pg              |
-| collector.file.content   | kingbase.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。默认模式支持oracle或mysql。**注意！该参数为文件参数，非探针执行文件参数！**                | 是        | 默认已有标准采集指标配置文件) |
+| **参数名**                  | **含义**                                                                                                      | **是否必填** | **使用举例**        |
+|--------------------------|-------------------------------------------------------------------------------------------------------------|----------|-----------------|
+| SQL_EXPORTER_USER        | 数据库用户名(环境变量)，特殊字符不需要编码转义                                                                                    | 是        | SYSDBA          |
+| SQL_EXPORTER_PASS        | 数据库密码(环境变量)，特殊字符不需要编码转义                                                                                     | 是        | SYSDBA001       |
+| SQL_EXPORTER_DB_TYPE     | 数据库类型(环境变量)                                                                                                 | 是        | kingbase        |
+| SQL_EXPORTER_HOST        | 数据库服务IP(环境变量)                                                                                               | 是        | 127.0.0.1       |
+| SQL_EXPORTER_PORT        | 数据库服务端口(环境变量)                                                                                               | 是        | 5236            |
+| SQL_EXPORTER_TIMEOUT     | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                                                        | 是        | 5               |
+| KINGBASE_DATABASE_MODE   | 人大金仓数据库模式(环境变量)，支持oracle、mysql、pg模式                                                                         | 是        | pg              |
+| collector.file.content   | kingbase.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。默认模式支持oracle或mysql。**注意！该参数为文件参数，非探针执行文件参数！**              | 是        | 默认已有标准采集指标配置文件) |
 | kingbase.pg.file.content | kingbase.collector.pg.yml 采集指标配置文件，包含指标名、维度、sql等内容。pg模式(KINGBASE.DATABASE_MODE=pg)。**注意！该参数为文件参数，非探针执行文件参数！** | 是        | 默认已有标准采集指标配置文件  |
-| COLLECTOR_REFS           | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                                                                          | 是        | kingbase*       |
-| SCRAPE_TIMEOUT           | 采集超时时间                                                                                                        | 否        | 10s             |
-| MAX_CONNECTION_LIFETIME  | 最长连接时长                                                                                                        | 否        | 5m              |
-| --collector.file         | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容                                                   | 是        |                 |
-| --log.level              | 日志级别                                                                                                          | 否        | info            |
-| --web.listen-address     | exporter监听id及端口地址                                                                                             | 否        | 127.0.0.1:9601  |
+| COLLECTOR_REFS           | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                                                                        | 是        | kingbase*       |
+| SCRAPE_TIMEOUT           | 采集超时时间                                                                                                      | 否        | 10s             |
+| MAX_CONNECTION_LIFETIME  | 最长连接时长                                                                                                      | 否        | 5m              |
+| --collector.file         | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容                                                 | 是        |                 |
+| --log.level              | 日志级别                                                                                                        | 否        | info            |
+| --web.listen-address     | exporter监听IP及端口地址                                                                                             | 否        | 127.0.0.1:9601  |
 
 
 ### 指标列表

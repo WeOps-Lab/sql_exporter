@@ -55,7 +55,7 @@ GRANT SELECT ON ALL TABLES IN SCHEMA sys TO "weops";
 | MAX_CONNECTION_LIFETIME | 最长连接时长                                                      | 否        | 5m             |
 | --collector.file        | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容 | 是        |                |
 | --log.level             | 日志级别                                                        | 否        | info           |
-| --web.listen-address    | exporter监听id及端口地址                                           | 否        | 127.0.0.1:9601 |
+| --web.listen-address    | exporter监听IP及端口地址                                           | 否        | 127.0.0.1:9601 |
 
 
 ### 指标列表
