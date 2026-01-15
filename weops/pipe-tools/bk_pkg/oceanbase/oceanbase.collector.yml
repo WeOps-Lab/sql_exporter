@@ -1,0 +1,561 @@
+# A collector defining standard metrics for OceanBase.
+#
+collector_name: oceanbase_standard
+
+# Similar to global.min_interval, but applies to the queries defined by this collector only.
+#min_interval: 0s
+
+metrics:
+  #
+  # OceanBase metrics
+  #
+  - metric_name: oceanbase_uptime
+    type: gauge
+    help: 'OceanBase服务器运行时间(秒)'
+    key_labels: []
+    values: [Value]
+    query: |
+      SHOW STATUS LIKE 'Uptime'
+
+  # OceanBase version
+  - metric_name: oceanbase_version
+    type: gauge
+    help: 'OceanBase版本信息'
+    key_labels: [version]
+    static_value: 1
+    query: |
+      SELECT version() AS version
+
+  # OceanBase role metrics
+  - metric_name: oceanbase_is_rootservice 
+    type: gauge
+    help: 'OceanBase根服务状态 (1=是，0=否)'
+    key_labels: [svr_ip, svr_port]
+    values: [with_rootserver]
+    query: |
+      SELECT svr_ip, svr_port, (CASE WHEN with_rootserver='YES' THEN 1 ELSE 0 END) AS with_rootserver FROM DBA_OB_SERVERS
+
+  # OceanBase cache metrics  
+  - metric_name: oceanbase_cache_size 
+    type: gauge
+    help: 'OceanBase缓存大小(bytes)'
+    key_labels: [tenant_id, cache_name]
+    values: [cache_size]
+    query_ref: ob_cache 
+
+  # OceanBase system statistics - 核心监控指标
+  # SQL 执行统计 - 平均响应时间
+  - metric_name: oceanbase_sysstat_sql_select_rt
+    type: gauge
+    help: 'SQL SELECT平均响应时间(微秒)'
+    key_labels: [tenant_id]
+    values: [sql_select_rt]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_sql_insert_rt
+    type: gauge
+    help: 'SQL INSERT平均响应时间(微秒)'
+    key_labels: [tenant_id]
+    values: [sql_insert_rt]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_sql_update_rt
+    type: gauge
+    help: 'SQL UPDATE平均响应时间(微秒)'
+    key_labels: [tenant_id]
+    values: [sql_update_rt]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_sql_delete_rt
+    type: gauge
+    help: 'SQL DELETE平均响应时间(微秒)'
+    key_labels: [tenant_id]
+    values: [sql_delete_rt]
+    query_ref: ob_sysstat
+
+  # 事务统计
+  - metric_name: oceanbase_sysstat_trans_commit
+    type: counter
+    help: '事务提交数量'
+    key_labels: [tenant_id]
+    values: [trans_commit]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_trans_rollback
+    type: counter
+    help: '事务回滚数量'
+    key_labels: [tenant_id]
+    values: [trans_rollback]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_trans_timeout
+    type: counter
+    help: '事务超时数量'
+    key_labels: [tenant_id]
+    values: [trans_timeout]
+    query_ref: ob_sysstat
+
+  # 缓存命中率
+  - metric_name: oceanbase_sysstat_block_cache_hit_percent
+    type: gauge
+    help: '块缓存命中率(%)'
+    key_labels: [tenant_id]
+    values: [block_cache_hit_percent]
+    query_ref: ob_sysstat
+
+  # IO 统计
+  - metric_name: oceanbase_sysstat_io_read
+    type: counter
+    help: 'IO读取次数'
+    key_labels: [tenant_id]
+    values: [io_read]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_io_read_bytes
+    type: counter
+    help: 'IO读取字节数(bytes)'
+    key_labels: [tenant_id]
+    values: [io_read_bytes]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_io_write
+    type: counter
+    help: 'IO写入次数'
+    key_labels: [tenant_id]
+    values: [io_write]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_io_write_bytes
+    type: counter
+    help: 'IO写入字节数(bytes)'
+    key_labels: [tenant_id]
+    values: [io_write_bytes]
+    query_ref: ob_sysstat
+
+  # 内存统计
+  - metric_name: oceanbase_sysstat_active_memstore_used
+    type: gauge
+    help: '活跃Memstore使用量(bytes)'
+    key_labels: [tenant_id]
+    values: [active_memstore_used]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_total_memstore_used
+    type: gauge
+    help: 'Memstore总使用量(bytes)'
+    key_labels: [tenant_id]
+    values: [total_memstore_used]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_memstore_limit
+    type: gauge
+    help: 'MEMStore的最大使用限制(bytes)'
+    key_labels: [tenant_id]
+    values: [memstore_limit]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_memory_usage
+    type: gauge
+    help: '内存使用量(bytes)'
+    key_labels: [tenant_id]
+    values: [memory_usage]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_max_memory
+    type: gauge
+    help: '最大内存(bytes)'
+    key_labels: [tenant_id]
+    values: [max_memory]
+    query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_memory_usage_percent
+    type: gauge
+    help: '内存使用率(%)'
+    key_labels: [tenant_id]
+    values: [memory_usage_percent]
+    query_ref: ob_sysstat
+
+  # CPU 统计
+  - metric_name: oceanbase_sysstat_cpu_usage
+    type: gauge
+    help: 'CPU使用率(%)'
+    key_labels: [tenant_id]
+    values: [cpu_usage]
+    query_ref: ob_sysstat
+
+  # OceanBase server status  
+  - metric_name: oceanbase_server_status 
+    type: gauge
+    help: 'OceanBase服务器状态'
+    key_labels: [servers, status]
+    values: [cnt]
+    query_ref: ob_server
+
+  # OceanBase table count  
+  - metric_name: oceanbase_table_count 
+    type: gauge
+    help: 'OceanBase表数量统计(按租户统计的表数量)'
+    key_labels: [tenant_id]
+    values: [cnt]
+    query_ref: ob_table 
+
+  # OceanBase active session  
+  - metric_name: oceanbase_active_session 
+    type: gauge
+    help: 'OceanBase当前活跃连接会话数量'
+    key_labels: [tenant_id, tenant_name]
+    values: [cnt]
+    query_ref: ob_active_session 
+
+  # OceanBase all session  
+  - metric_name: oceanbase_all_session 
+    type: gauge
+    help: 'OceanBase所有连接会话总数量'
+    key_labels: [tenant_id, tenant_name]
+    values: [cnt]
+    query_ref: ob_all_session 
+
+  # OceanBase plan cache
+  - metric_name: oceanbase_plan_cache_hit_percent
+    type: gauge
+    help: 'OceanBase计划缓存命中率(%)'
+    key_labels: [tenant_id]
+    values: [hit_percent]
+    query_ref: ob_plan_cache
+
+  # OceanBase wait event  
+  - metric_name: oceanbase_waitevent_avg_time
+    type: gauge
+    help: 'OceanBase等待事件平均耗时(微秒)'
+    key_labels: [tenant_id]
+    values: [avg_time]
+    query_ref: ob_waitevent
+
+  # OceanBase system event  
+  - metric_name: oceanbase_system_event_avg_time
+    type: gauge
+    help: 'OceanBase系统事件平均耗时(微秒) - 按事件组分类'
+    key_labels: [tenant_id, event_group]
+    values: [avg_time]
+    query_ref: ob_system_event
+
+  # OceanBase server resource  
+  - metric_name: oceanbase_server_cpu_total 
+    type: gauge
+    help: 'OceanBase服务器CPU总量'
+    values: [cpu_total]
+    query_ref: ob_server_resource 
+
+  - metric_name: oceanbase_server_cpu_assigned 
+    type: gauge
+    help: 'OceanBase服务器CPU已分配'
+    values: [cpu_assigned]
+    query_ref: ob_server_resource 
+
+  - metric_name: oceanbase_server_memory_total 
+    type: gauge
+    help: 'OceanBase服务器内存总量(bytes)'
+    values: [mem_total]
+    query_ref: ob_server_resource 
+
+  - metric_name: oceanbase_server_memory_assigned 
+    type: gauge
+    help: 'OceanBase服务器内存已分配'
+    values: [mem_assigned]
+    query_ref: ob_server_resource 
+
+  - metric_name: oceanbase_server_disk_total 
+    type: gauge
+    help: 'OceanBase服务器磁盘总量(bytes)'
+    values: [disk_total]
+    query_ref: ob_server_resource 
+
+  # OceanBase tenant assigned  
+  - metric_name: oceanbase_tenant_cpu_total 
+    type: gauge
+    help: 'OceanBase租户CPU总量(核)'
+    key_labels: [tenant_id, tenant_name]
+    values: [cpu_total]
+    query_ref: ob_tenant_assigned 
+
+  - metric_name: oceanbase_tenant_cpu_assigned 
+    type: gauge
+    help: 'OceanBase租户CPU已分配(核)'
+    key_labels: [tenant_id, tenant_name]
+    values: [cpu_assigned]
+    query_ref: ob_tenant_assigned 
+
+  - metric_name: oceanbase_tenant_memory_total 
+    type: gauge
+    help: 'OceanBase租户内存总量(bytes)'
+    key_labels: [tenant_id, tenant_name]
+    values: [mem_total]
+    query_ref: ob_tenant_assigned 
+
+  - metric_name: oceanbase_tenant_memory_assigned 
+    type: gauge
+    help: 'OceanBase租户内存已分配(bytes)'
+    key_labels: [tenant_id, tenant_name]
+    values: [mem_assigned]
+    query_ref: ob_tenant_assigned
+
+  # OceanBase tenant disk  
+  - metric_name: oceanbase_tenant_data_disk 
+    type: gauge
+    help: 'OceanBase租户数据磁盘使用量(bytes)'
+    key_labels: [tenant_id, tenant_name]
+    values: [data_disk_in_use]
+    query_ref: ob_tenant_disk 
+
+  - metric_name: oceanbase_tenant_log_disk 
+    type: gauge
+    help: 'OceanBase租户日志磁盘使用量(bytes)'
+    key_labels: [tenant_id, tenant_name]
+    values: [log_disk_in_use]
+    query_ref: ob_tenant_disk 
+
+  # OceanBase disk  
+  - metric_name: oceanbase_disk_total 
+    type: gauge
+    help: 'OceanBase磁盘总容量(bytes)'
+    values: [total_size]
+    query_ref: ob_disk 
+
+  - metric_name: oceanbase_disk_free 
+    type: gauge
+    help: 'OceanBase磁盘剩余容量(bytes)'
+    values: [free_size]
+    query_ref: ob_disk 
+
+  - metric_name: oceanbase_disk_used_percent
+    type: gauge
+    help: 'OceanBase磁盘使用率(%)'
+    values: [used_percent]
+    query_ref: ob_disk
+
+  # OceanBase index error  
+  - metric_name: oceanbase_index_error 
+    type: gauge
+    help: 'OceanBase索引错误数量'
+    values: [cnt]
+    query: |
+      SELECT count(*) as cnt FROM CDB_INDEXES WHERE status IN ('ERROR','UNUSABLE')
+
+  # OceanBase memstore  
+  - metric_name: oceanbase_memstore_active 
+    type: gauge
+    help: 'OceanBase内存存储活跃空间(bytes)'
+    key_labels: [tenant_id]
+    values: [active]
+    query_ref: ob_memstore 
+
+  - metric_name: oceanbase_memstore_total 
+    type: gauge
+    help: 'OceanBase内存存储总空间(bytes)'
+    key_labels: [tenant_id]
+    values: [total]
+    query_ref: ob_memstore 
+
+  - metric_name: oceanbase_memstore_freeze_trigger 
+    type: gauge
+    help: 'OceanBase内存存储冻结触发阈值(bytes)'
+    key_labels: [tenant_id]
+    values: [freeze_trigger]
+    query_ref: ob_memstore 
+
+  - metric_name: oceanbase_memstore_freeze_count 
+    type: gauge
+    help: 'OceanBase内存存储冻结次数'
+    key_labels: [tenant_id]
+    values: [freeze_cnt]
+    query_ref: ob_memstore 
+
+  # OceanBase tenant 500 memory  
+  - metric_name: oceanbase_tenant500_memory_hold 
+    type: gauge
+    help: 'OceanBase系统租户内存持有量(bytes)'
+    values: [hold]
+    query_ref: ob_tenant500_memory 
+
+  - metric_name: oceanbase_tenant500_memory_used 
+    type: gauge
+    help: 'OceanBase系统租户内存使用量(bytes)'
+    values: [used]
+    query_ref: ob_tenant500_memory 
+
+  - metric_name: oceanbase_tenant500_memory_used_percent
+    type: gauge
+    help: 'OceanBase系统租户内存使用率(%)'
+    values: [used_percent]
+    query_ref: ob_tenant500_memory
+
+queries:
+  # Cache query 
+  - query_name: ob_cache 
+    query: |
+      SELECT tenant_id, cache_name, cache_size
+      FROM GV$OB_KVCACHE
+
+  # System statistics query - 核心监控指标
+  - query_name: ob_sysstat
+    query: |
+      SELECT con_id tenant_id,
+        CASE WHEN MAX(CASE WHEN stat_id = 40000 THEN value END) > 0
+             THEN MAX(CASE WHEN stat_id = 40001 THEN value END) / MAX(CASE WHEN stat_id = 40000 THEN value END)
+             ELSE 0 END AS sql_select_rt,
+        CASE WHEN MAX(CASE WHEN stat_id = 40002 THEN value END) > 0
+             THEN MAX(CASE WHEN stat_id = 40003 THEN value END) / MAX(CASE WHEN stat_id = 40002 THEN value END)
+             ELSE 0 END AS sql_insert_rt,
+        CASE WHEN MAX(CASE WHEN stat_id = 40006 THEN value END) > 0
+             THEN MAX(CASE WHEN stat_id = 40007 THEN value END) / MAX(CASE WHEN stat_id = 40006 THEN value END)
+             ELSE 0 END AS sql_update_rt,
+        CASE WHEN MAX(CASE WHEN stat_id = 40008 THEN value END) > 0
+             THEN MAX(CASE WHEN stat_id = 40009 THEN value END) / MAX(CASE WHEN stat_id = 40008 THEN value END)
+             ELSE 0 END AS sql_delete_rt,
+        MAX(CASE WHEN stat_id = 30007 THEN value END) AS trans_commit,
+        MAX(CASE WHEN stat_id = 30009 THEN value END) AS trans_rollback,
+        MAX(CASE WHEN stat_id = 30011 THEN value END) AS trans_timeout,
+        CASE WHEN (MAX(CASE WHEN stat_id = 50008 THEN value END) + MAX(CASE WHEN stat_id = 50009 THEN value END)) > 0
+             THEN MAX(CASE WHEN stat_id = 50008 THEN value END) * 100.0 / (MAX(CASE WHEN stat_id = 50008 THEN value END) + MAX(CASE WHEN stat_id = 50009 THEN value END))
+             ELSE 0 END AS block_cache_hit_percent,
+        MAX(CASE WHEN stat_id = 60000 THEN value END) AS io_read,
+        MAX(CASE WHEN stat_id = 60002 THEN value END) AS io_read_bytes,
+        MAX(CASE WHEN stat_id = 60003 THEN value END) AS io_write,
+        MAX(CASE WHEN stat_id = 60005 THEN value END) AS io_write_bytes,
+        MAX(CASE WHEN stat_id = 130000 THEN value END) AS active_memstore_used,
+        MAX(CASE WHEN stat_id = 130001 THEN value END) AS total_memstore_used,
+        MAX(CASE WHEN stat_id = 130004 THEN value END) AS memstore_limit,
+        MAX(CASE WHEN stat_id = 140003 THEN value END) AS memory_usage,
+        MAX(CASE WHEN stat_id = 140002 THEN value END) AS max_memory,
+        CASE WHEN MAX(CASE WHEN stat_id = 140002 THEN value END) > 0
+             THEN MAX(CASE WHEN stat_id = 140003 THEN value END) * 100.0 / MAX(CASE WHEN stat_id = 140002 THEN value END)
+             ELSE 0 END AS memory_usage_percent,
+        MAX(CASE WHEN stat_id = 140006 THEN value END) AS cpu_usage
+      FROM v$sysstat
+      WHERE stat_id IN (40000,40001,40002,40003,40006,40007,40008,40009,30007,30009,30011,50008,50009,60000,60002,60003,60005,130000,130001,130004,140002,140003,140006)
+      AND (con_id > 1000 OR con_id = 1)
+      GROUP BY con_id
+
+  # Server status query
+  - query_name: ob_server 
+    query: |
+      SELECT group_concat(svr_ip SEPARATOR ',') AS servers, status, count(1) AS cnt
+      FROM DBA_OB_SERVERS
+      GROUP BY status
+
+  # Table count query 
+  - query_name: ob_table 
+    query: |
+      SELECT con_id tenant_id, count(*) as cnt
+      FROM CDB_TABLES
+      GROUP BY con_id
+
+  # Active session query 
+  - query_name: ob_active_session 
+    query: |
+      SELECT case when cnt is null then 0 else cnt end as cnt, tenant_name, tenant_id
+      FROM (SELECT DBA_OB_TENANTS.tenant_name, DBA_OB_TENANTS.tenant_id, cnt
+            FROM DBA_OB_TENANTS
+            LEFT JOIN (SELECT count(`state`='ACTIVE' OR NULL) as cnt, tenant as tenant_name
+                       FROM GV$OB_PROCESSLIST
+                       GROUP BY tenant) t1
+            ON DBA_OB_TENANTS.tenant_name = t1.tenant_name
+            WHERE DBA_OB_TENANTS.tenant_type<>'META') t2
+
+  # All session query 
+  - query_name: ob_all_session 
+    query: |
+      SELECT case when cnt is null then 0 else cnt end as cnt, tenant_name, tenant_id
+      FROM (SELECT DBA_OB_TENANTS.tenant_name, DBA_OB_TENANTS.tenant_id, cnt
+            FROM DBA_OB_TENANTS
+            LEFT JOIN (SELECT count(1) as cnt, tenant as tenant_name
+                       FROM GV$OB_PROCESSLIST
+                       GROUP BY tenant) t1
+            ON DBA_OB_TENANTS.tenant_name = t1.tenant_name
+            WHERE DBA_OB_TENANTS.tenant_type<>'META') t2
+
+  # Plan cache query 
+  - query_name: ob_plan_cache 
+    query: |
+      SELECT tenant_id, GREATEST(mem_used, 0) as mem_used,
+        CASE WHEN access_count > 0 THEN hit_count * 100.0 / access_count ELSE 0 END AS hit_percent
+      FROM V$OB_PLAN_CACHE_STAT
+
+  # Wait event query 
+  - query_name: ob_waitevent 
+    query: |
+      SELECT con_id tenant_id,
+        CASE WHEN sum(total_waits) > 0 THEN sum(time_waited_micro) / sum(total_waits) ELSE 0 END AS avg_time
+      FROM v$system_event
+      WHERE v$system_event.wait_class <> 'IDLE' AND (con_id > 1000 OR con_id = 1)
+      GROUP BY con_id
+
+  # System event query 
+  - query_name: ob_system_event 
+    query: |
+      SELECT con_id tenant_id,
+             CASE WHEN event_id = 10000 THEN 'INTERNAL'
+                  WHEN event_id = 13000 THEN 'SYNC_RPC'
+                  WHEN event_id = 14003 THEN 'ROW_LOCK_WAIT'
+                  WHEN (event_id >= 10001 AND event_id <= 11006) OR (event_id >= 11008 AND event_id <= 11011) THEN 'IO'
+                  WHEN event LIKE 'latch:%' THEN 'LATCH'
+                  ELSE 'OTHER' END event_group,
+             CASE WHEN sum(total_waits) > 0 THEN sum(time_waited_micro) / sum(total_waits) ELSE 0 END AS avg_time
+      FROM v$system_event
+      WHERE v$system_event.wait_class <> 'IDLE' AND (con_id > 1000 OR con_id = 1)
+      GROUP BY con_id, event_group
+
+  # Server resource query 
+  - query_name: ob_server_resource 
+    query: |
+      SELECT cpu_capacity_max as cpu_total, cpu_assigned_max as cpu_assigned, mem_capacity as mem_total, mem_assigned as mem_assigned, data_disk_capacity as disk_total, (cpu_assigned_max / cpu_capacity_max) as cpu_assigned_percent, (mem_assigned / mem_capacity) as mem_assigned_percent
+      FROM GV$OB_SERVERS
+
+  # Tenant assigned query 
+  - query_name: ob_tenant_assigned 
+    query: |
+      SELECT t4.tenant_id, t4.tenant_name, cpu_capacity as cpu_total, cpu_assigned, mem_capacity as mem_total, mem_assigned as mem_assigned
+      FROM GV$OB_SERVERS t1
+      JOIN (SELECT t2.tenant_id, t3.tenant_name, t2.svr_ip, t2.svr_port
+            FROM gv$ob_units t2
+            LEFT JOIN DBA_OB_TENANTS t3 ON t2.tenant_id=t3.tenant_id
+            WHERE T3.tenant_type<>'META') t4
+      ON t1.svr_ip=t4.svr_ip AND t1.svr_port=t4.svr_port
+
+  # Tenant disk query 
+  - query_name: ob_tenant_disk 
+    query: |
+      SELECT coalesce(t1.tenant_id, -1) as tenant_id, tenant_name, sum(data_disk_in_use) as data_disk_in_use, sum(log_disk_in_use) as log_disk_in_use
+      FROM (SELECT t1.unit_id, t1.svr_ip, t1.svr_port, t2.tenant_id, t1.data_disk_in_use, t1.log_disk_in_use
+            FROM (SELECT unit_id, svr_ip, svr_port, sum(data_disk_in_use) as data_disk_in_use, sum(log_disk_in_use) as log_disk_in_use
+                  FROM v$ob_units
+                  GROUP BY unit_id) t1
+            JOIN dba_ob_units t2 ON t1.unit_id = t2.unit_id) t1
+      JOIN dba_ob_tenants t2 ON t1.tenant_id = t2.tenant_id
+      WHERE tenant_type <>'meta'
+      GROUP BY tenant_id
+
+  # Disk query 
+  - query_name: ob_disk 
+    query: |
+      SELECT data_disk_capacity as total_size, (data_disk_capacity - data_disk_in_use) as free_size,
+        CASE WHEN data_disk_capacity > 0 THEN data_disk_in_use * 100.0 / data_disk_capacity ELSE 0 END AS used_percent
+      FROM GV$OB_SERVERS
+
+  # Memstore query 
+  - query_name: ob_memstore 
+    query: |
+      SELECT tenant_id, active_span as active, memstore_used as total, freeze_trigger, freeze_cnt
+      FROM GV$OB_MEMSTORE
+
+  # Tenant 500 memory query 
+  - query_name: ob_tenant500_memory 
+    query: |
+      SELECT sum(hold) as hold, sum(used) as used,
+        CASE WHEN sum(hold) > 0 THEN sum(used) * 100.0 / sum(hold) ELSE 0 END AS used_percent
+      FROM GV$OB_MEMORY
+      WHERE tenant_id = 500 AND MOD_NAME <> 'KvstorCacheMb'
+
+
+
+
