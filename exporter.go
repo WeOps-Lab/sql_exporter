@@ -106,7 +106,7 @@ func NewExporter(configFile string, collectorFile string) (Exporter, error) {
 	case "sqlserver", "mssql":
 		*dsnOverride = fmt.Sprintf("sqlserver://%s?encrypt=disable", commonDSN)
 	case "dm": //达梦数据库 版本>=8.1.1.126
-		*dsnOverride = fmt.Sprintf("dm://%s", commonDSN)
+		*dsnOverride = fmt.Sprintf("dm://%s?escapeProcess=true", commonDSN)
 	case "kingbase": // 人大金仓数据库
 		*dsnOverride = fmt.Sprintf("kingbase://%s/%s?sslmode=disable&connect_timeout=%s", commonDSN, dbName, timeout)
 	case "sybase": //
