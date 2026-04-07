@@ -37,7 +37,6 @@ var (
 	metricsPath   = flag.String("web.metrics-path", "/metrics", "Path under which to expose metrics")
 	enableReload  = flag.Bool("web.enable-reload", false, "Enable reload collector data handler")
 	webConfigFile = flag.String("web.config.file", "", "[EXPERIMENTAL] TLS/BasicAuth configuration file path")
-	configFile    = flag.String("config.file", "", "SQL Exporter configuration file path")
 	collectorFile = flag.String("collector.file", "", "SQL Exporter collector file path")
 	logFormatJSON = flag.Bool("log.json", false, "[DEPRECATED] Set log output format to JSON")
 	logFormat     = flag.String("log.format", "logfmt", "Set log output format")
@@ -72,13 +71,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Override the config.file default with the SQLEXPORTER_CONFIG environment variable if set.
-	if val, ok := os.LookupEnv(cfg.EnvConfigFile); ok {
-		*configFile = val
-	}
-
 	klog.Warningf("Starting SQL exporter %s %s", version.Info(), version.BuildContext())
-	exporter, err := sql_exporter.NewExporter(*configFile, *collectorFile)
+	exporter, err := sql_exporter.NewExporter(*collectorFile)
 	if err != nil {
 		klog.Fatalf("Error creating exporter: %s", err)
 	}
@@ -87,7 +81,7 @@ func main() {
 	startScrapeErrorsDropTicker(exporter, exporter.Config().Globals.ScrapeErrorDropInterval)
 
 	// Start signal handler to reload collector and target data.
-	signalHandler(exporter, *configFile, *collectorFile)
+	signalHandler(exporter, *collectorFile)
 
 	// Setup and start webserver.
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { http.Error(w, "OK", http.StatusOK) })
@@ -98,7 +92,7 @@ func main() {
 	http.Handle("/sql_exporter_metrics", promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{}))
 	// Expose refresh handler to reload collectors and targets
 	if *enableReload {
-		http.HandleFunc("/reload", reloadHandler(exporter, *configFile, *collectorFile))
+		http.HandleFunc("/reload", reloadHandler(exporter, *collectorFile))
 	}
 
 	server := &http.Server{Addr: *listenAddress, ReadHeaderTimeout: httpReadHeaderTimeout}
@@ -111,9 +105,9 @@ func main() {
 }
 
 // reloadHandler returns a handler that reloads collector and target data.
-func reloadHandler(e sql_exporter.Exporter, configFile string, collectorFile string) func(http.ResponseWriter, *http.Request) {
+func reloadHandler(e sql_exporter.Exporter, collectorFile string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := sql_exporter.Reload(e, &configFile, &collectorFile); err != nil {
+		if err := sql_exporter.Reload(e, &collectorFile); err != nil {
 			klog.Error(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -123,12 +117,12 @@ func reloadHandler(e sql_exporter.Exporter, configFile string, collectorFile str
 }
 
 // signalHandler listens for SIGHUP signals and reloads the collector and target data.
-func signalHandler(e sql_exporter.Exporter, configFile string, collectorFile string) {
+func signalHandler(e sql_exporter.Exporter, collectorFile string) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP)
 	go func() {
 		for range c {
-			if err := sql_exporter.Reload(e, &configFile, &collectorFile); err != nil {
+			if err := sql_exporter.Reload(e, &collectorFile); err != nil {
 				klog.Error(err)
 			}
 		}

@@ -73,15 +73,15 @@ type exporter struct {
 	ctx context.Context
 }
 
-// NewExporter returns a new Exporter with the provided config.
-func NewExporter(configFile string, collectorFile string) (Exporter, error) {
-	c, err := config.Load(configFile, collectorFile)
+// NewExporter returns a new Exporter with the provided collector config.
+func NewExporter(collectorFile string) (Exporter, error) {
+	c, err := config.Load(collectorFile)
 	if err != nil {
 		return nil, err
 	}
 
 	commonDSN := fmt.Sprintf("%v:%v@%v:%v", user, password, host, port)
-	dbType = strings.ToLower(strings.TrimSpace(c.CollectorDBType))
+	dbType = strings.ToLower(strings.TrimSpace(c.GetCollectorDBType()))
 	if dbType == "" {
 		dbType = strings.ToLower(strings.TrimSpace(os.Getenv("SQL_EXPORTER_DB_TYPE")))
 		if dbType != "" {

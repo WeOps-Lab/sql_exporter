@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"github.com/prometheus/common/model"
 	"os"
@@ -23,9 +22,7 @@ const MaxInt32 int = 1<<31 - 1
 const (
 	EnvPrefix string = "SQLEXPORTER_"
 
-	EnvConfigFile              string = EnvPrefix + "CONFIG"
-	EnvDebug                   string = EnvPrefix + "DEBUG"
-	EmbedSqlExporterConfigFile string = "sql_exporter_embed.yml"
+	EnvDebug string = EnvPrefix + "DEBUG"
 )
 
 var (
@@ -33,43 +30,52 @@ var (
 	IgnoreMissingVals    bool
 	DsnOverride          string
 	TargetLabel          string
-	kingbaseDatabaseMode      = os.Getenv("KINGBASE_DATABASE_MODE")
-	useEmbedConfig       bool = true // Use embedded config by default
-	//go:embed sql_exporter_embed.yml
-	sqlExporterConfig embed.FS
+	kingbaseDatabaseMode = os.Getenv("KINGBASE_DATABASE_MODE")
 )
 
-// Load attempts to parse the given config file and return a Config object.
-func Load(configFile string, collectorFile string) (*Config, error) {
-	source := configFile
-	var readFn func(string) ([]byte, error)
-	if source == "" {
-		useEmbedConfig = true
-		source = EmbedSqlExporterConfigFile
-		readFn = sqlExporterConfig.ReadFile
-		klog.Infof("Loading configuration from embed file: %s", source)
-	} else {
-		useEmbedConfig = false
-		readFn = os.ReadFile
-		klog.Infof("Loading configuration from: %s", source)
+// Load builds the single-target configuration from collector.file and environment variables.
+func Load(collectorFile string) (*Config, error) {
+	return loadDefaultConfig(collectorFile)
+}
+
+func loadDefaultConfig(collectorFile string) (*Config, error) {
+	klog.Infof("Loading configuration from code defaults")
+
+	c := &Config{
+		collectorFile: collectorFile,
+		Globals:       &GlobalConfig{},
+		Target:        &TargetConfig{},
 	}
 
-	buf, err := readFn(source)
-	if err != nil {
+	if err := c.populateGlobalDefaults(); err != nil {
 		return nil, err
 	}
 
-	c := Config{configFile: configFile, collectorFile: collectorFile}
-	err = yaml.Unmarshal(buf, &c)
-	if err != nil {
+	c.applyEnvOverrides(collectorFile)
+
+	if err := c.processEnvConfig(); err != nil {
 		return nil, err
 	}
 
-	if c.Globals == nil {
-		return nil, fmt.Errorf("empty or no configuration provided")
+	if err := c.checkRequiredFields(); err != nil {
+		return nil, err
 	}
 
-	return &c, nil
+	if err := c.loadCollectorFiles(); err != nil {
+		return nil, err
+	}
+
+	c.applyDefaultCollectorRefs()
+
+	if err := checkCollectorRefs(c.Target.CollectorRefs, "target"); err != nil {
+		return nil, err
+	}
+
+	if err := c.populateCollectorReferences(); err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 //
@@ -84,10 +90,8 @@ type Config struct {
 	Jobs           []*JobConfig       `yaml:"jobs,omitempty"`
 	Collectors     []*CollectorConfig `yaml:"collectors,omitempty"`
 
-	configFile      string
 	collectorFile   string
 	collectorDBType string
-	useEmbedConfig  bool
 	// Catches all undefined fields and must be empty after parsing.
 	XXX map[string]any `yaml:",inline" json:"-"`
 }
@@ -100,9 +104,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(any) error) error {
 	}
 
 	// Apply environment overrides.
-	if useEmbedConfig {
-		c.applyEnvOverrides(c.collectorFile)
-	}
+	c.applyEnvOverrides(c.collectorFile)
 
 	// Populate global defaults.
 	if err := c.populateGlobalDefaults(); err != nil {
@@ -113,6 +115,8 @@ func (c *Config) UnmarshalYAML(unmarshal func(any) error) error {
 	if err := c.loadCollectorFiles(); err != nil {
 		return err
 	}
+
+	c.applyDefaultCollectorRefs()
 
 	// Process environment variables.
 	if err := c.processEnvConfig(); err != nil {
@@ -210,12 +214,7 @@ func (c *Config) GetCollectorDBType() string {
 
 // loadCollectorFiles resolves all collector file globs to files and loads the collectors they define.
 func (c *Config) loadCollectorFiles() error {
-	var baseDir string
-	if useEmbedConfig {
-		baseDir = "."
-	} else {
-		baseDir = filepath.Dir(c.configFile)
-	}
+	baseDir := "."
 
 	for _, cfglob := range c.CollectorFiles {
 		// Resolve relative paths by joining them to the configuration file's directory.
@@ -283,8 +282,10 @@ func (c *Config) applyEnvOverrides(collectorFile string) {
 		c.CollectorFiles = []string{collectorFile}
 	}
 
-	// sql采集名称
-	c.Target.CollectorRefs = []string{os.Getenv("COLLECTOR_REFS")}
+	// sql采集名称，未配置时默认使用 collector.file 中定义的采集器
+	if collectorRefs := strings.TrimSpace(os.Getenv("COLLECTOR_REFS")); collectorRefs != "" {
+		c.Target.CollectorRefs = []string{collectorRefs}
+	}
 
 	// 应用配置
 	SetDurationFromEnv("SCRAPE_TIMEOUT_OFFSET", "500ms", func(d model.Duration) { c.Globals.TimeoutOffset = d })
@@ -293,4 +294,16 @@ func (c *Config) applyEnvOverrides(collectorFile string) {
 	SetIntFromEnv("MAX_IDLE_CONNECTIONS", "3", func(i int) { c.Globals.MaxIdleConns = i })
 	SetTimeDurationFromEnv("MAX_CONNECTION_LIFETIME", "5m", func(d time.Duration) { c.Globals.MaxConnLifetime = d })
 	SetDurationFromEnv("SCRAPE_TIMEOUT", "10s", func(d model.Duration) { c.Globals.ScrapeTimeout = d })
+}
+
+func (c *Config) applyDefaultCollectorRefs() {
+	if c.Target == nil || len(c.Target.CollectorRefs) > 0 || len(c.Collectors) == 0 {
+		return
+	}
+
+	collectorRefs := make([]string, 0, len(c.Collectors))
+	for _, collector := range c.Collectors {
+		collectorRefs = append(collectorRefs, collector.Name)
+	}
+	c.Target.CollectorRefs = collectorRefs
 }
