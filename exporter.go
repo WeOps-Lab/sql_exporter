@@ -106,7 +106,21 @@ func NewExporter(configFile string, collectorFile string) (Exporter, error) {
 	case "sqlserver", "mssql":
 		*dsnOverride = fmt.Sprintf("sqlserver://%s?encrypt=disable", commonDSN)
 	case "dm": //达梦数据库 版本>=8.1.1.126
-		*dsnOverride = fmt.Sprintf("dm://%s?escapeProcess=true", commonDSN)
+		// 达梦密码含特殊字符时通常需要开启 escapeProcess，保留开关用于兼容旧驱动。
+		dmEscapeProcess := true
+		if value := strings.TrimSpace(os.Getenv("SQL_EXPORTER_DM_ESCAPE_PROCESS")); value != "" {
+			parsed, err := strconv.ParseBool(value)
+			if err != nil {
+				klog.Warningf("invalid SQL_EXPORTER_DM_ESCAPE_PROCESS=%q, defaulting to true", value)
+			} else {
+				dmEscapeProcess = parsed
+			}
+		}
+		if dmEscapeProcess {
+			*dsnOverride = fmt.Sprintf("dm://%s?escapeProcess=true", commonDSN)
+		} else {
+			*dsnOverride = fmt.Sprintf("dm://%s", commonDSN)
+		}
 	case "kingbase": // 人大金仓数据库
 		*dsnOverride = fmt.Sprintf("kingbase://%s/%s?sslmode=disable&connect_timeout=%s", commonDSN, dbName, timeout)
 	case "sybase": //
