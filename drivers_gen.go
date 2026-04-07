@@ -5,8 +5,6 @@ package main
 import (
 	"fmt"
 	"os"
-
-	. "github.com/dave/jennifer/jen"
 )
 
 const (
@@ -51,6 +49,16 @@ var driverList = map[string][]string{
 		"kingbase.com/gokb",
 	},
 	"sybase": {
+		"github.com/thda/tds",
+	},
+	"all": {
+		"github.com/go-sql-driver/mysql",
+		"github.com/lib/pq",
+		"github.com/denisenkom/go-mssqldb",
+		"github.com/sijms/go-ora/v2",
+		"gitee.com/chunanyong/dm",
+		"gitee.com/opengauss/openGauss-connector-go-pq",
+		"kingbase.com/gokb",
 		"github.com/thda/tds",
 	},
 }
