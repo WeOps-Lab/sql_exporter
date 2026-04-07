@@ -51,18 +51,18 @@ GRANT SOI TO weops;
 
 ### 参数说明
 
-| **参数名**                 | **含义**                                                    | **是否必填** | **使用举例**       |
-|-------------------------|-----------------------------------------------------------|----------|----------------|
-| SQL_EXPORTER_USER       | 数据库用户名(环境变量)，特殊字符不需要编码转义                                  | 是        | SYSDBA         |
-| SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                   | 是        | SYSDBA001      |
-| SQL_EXPORTER_DB_TYPE    | 数据库类型(环境变量)                                               | 是        | dm             |
-| SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                             | 是        | 127.0.0.1      |
-| SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                             | 是        | 5236           |
-| COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                      | 是        | dm*            |
-| SCRAPE_TIMEOUT          | 采集超时时间                                                    | 否        | 10s            |
-| MAX_CONNECTION_LIFETIME | 最长连接时长                                                    | 否        | 5m             |
+| **参数名**                 | **含义**                                                      | **是否必填** | **使用举例**       |
+|-------------------------|-------------------------------------------------------------|----------|----------------|
+| SQL_EXPORTER_USER       | 数据库用户名(环境变量)，特殊字符不需要编码转义                                    | 是        | SYSDBA         |
+| SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                     | 是        | SYSDBA001      |
+| SQL_EXPORTER_DB_TYPE    | 数据库类型(环境变量)                                                 | 是        | dm             |
+| SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                               | 是        | 127.0.0.1      |
+| SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                               | 是        | 5236           |
+| COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                        | 是        | dm*            |
+| SCRAPE_TIMEOUT          | 采集超时时间                                                      | 否        | 10s            |
+| MAX_CONNECTION_LIFETIME | 最长连接时长                                                      | 否        | 5m             |
 | --collector.file        | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容 | 是        |                |
-| --log.level             | 日志级别                                                      | 否        | info           |
+| --log.level             | 日志级别                                                        | 否        | info           |
 | --web.listen-address    | exporter监听IP及端口地址                                           | 否        | 127.0.0.1:9601 |
 
 
@@ -131,3 +131,7 @@ GRANT SOI TO weops;
   dm_exporter_buffer_cache_hit_ratio -> dm_exporter_buffer_cache_hit_percent
 - 更正指标命名
   dm_exporter_asm_real_used_ratio -> dm_exporter_asm_real_used_percent
+
+#### weops_dm_exporter v4.1.3
+- 达梦连接默认追加 `escapeProcess=true`，修复密码含特殊字符时认证失败的问题
+- 新增环境变量 `SQL_EXPORTER_DM_ESCAPE_PROCESS`，默认 `true`，可显式设为 `false` 兼容旧驱动
