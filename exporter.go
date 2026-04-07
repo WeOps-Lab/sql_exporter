@@ -5,26 +5,20 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/prometheus/common/model"
-
 	"github.com/burningalchemist/sql_exporter/config"
+	"github.com/go-sql-driver/mysql"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
-
-	_ "github.com/prometheus/common/model"
+	"github.com/prometheus/common/model"
 	"google.golang.org/protobuf/proto"
 	"k8s.io/klog/v2"
-
-	"net/url"
-	"os"
-	_ "strconv"
-	_ "time"
 )
 
 var (
@@ -34,8 +28,8 @@ var (
 )
 var (
 	dbType                = os.Getenv("SQL_EXPORTER_DB_TYPE")
-	user                  = url.QueryEscape(os.Getenv("SQL_EXPORTER_USER"))
-	password              = url.QueryEscape(os.Getenv("SQL_EXPORTER_PASS"))
+	rawUser               = os.Getenv("SQL_EXPORTER_USER")
+	rawPassword           = os.Getenv("SQL_EXPORTER_PASS")
 	host                  = os.Getenv("SQL_EXPORTER_HOST")
 	port                  = os.Getenv("SQL_EXPORTER_PORT")
 	dbName                = os.Getenv("SQL_EXPORTER_DB_NAME")
@@ -80,7 +74,6 @@ func NewExporter(collectorFile string) (Exporter, error) {
 		return nil, err
 	}
 
-	commonDSN := fmt.Sprintf("%v:%v@%v:%v", user, password, host, port)
 	dbType = strings.ToLower(strings.TrimSpace(c.GetCollectorDBType()))
 	if dbType == "" {
 		dbType = strings.ToLower(strings.TrimSpace(os.Getenv("SQL_EXPORTER_DB_TYPE")))
@@ -89,51 +82,12 @@ func NewExporter(collectorFile string) (Exporter, error) {
 		}
 	}
 
-	switch dbType {
-	case "mysql", "gbase8a", "oceanbase":
-		// 强制修改为MySQL的驱动
-		dbType = "mysql"
-		// MySQL驱动特殊，不能先用特殊字符转换，直接丢入配置中
-		cfg := mysql.Config{
-			User:                 os.Getenv("SQL_EXPORTER_USER"),
-			Passwd:               os.Getenv("SQL_EXPORTER_PASS"),
-			Net:                  "tcp",
-			Addr:                 fmt.Sprintf("%v:%v", host, port),
-			DBName:               dbName,
-			AllowNativePasswords: true,
-		}
-		*dsnOverride = cfg.FormatDSN()
-	case "postgres", "vastbase": // 海量数据库
-		*dsnOverride = fmt.Sprintf("postgres://%s/%s?sslmode=disable", commonDSN, dbName)
-	case "opengauss":
-		*dsnOverride = fmt.Sprintf("opengauss://%s/%s?sslmode=disable", commonDSN, dbName)
-	case "oracle":
-		*dsnOverride = fmt.Sprintf("oracle://%s/%s", commonDSN, dbName)
-	case "sqlserver", "mssql":
-		*dsnOverride = fmt.Sprintf("sqlserver://%s?encrypt=disable", commonDSN)
-	case "dm": //达梦数据库 版本>=8.1.1.126
-		// 达梦密码含特殊字符时通常需要开启 escapeProcess，保留开关用于兼容旧驱动。
-		dmEscapeProcess := true
-		if value := strings.TrimSpace(os.Getenv("SQL_EXPORTER_DM_ESCAPE_PROCESS")); value != "" {
-			parsed, err := strconv.ParseBool(value)
-			if err != nil {
-				klog.Warningf("invalid SQL_EXPORTER_DM_ESCAPE_PROCESS=%q, defaulting to true", value)
-			} else {
-				dmEscapeProcess = parsed
-			}
-		}
-		if dmEscapeProcess {
-			*dsnOverride = fmt.Sprintf("dm://%s?escapeProcess=true", commonDSN)
-		} else {
-			*dsnOverride = fmt.Sprintf("dm://%s", commonDSN)
-		}
-	case "kingbase": // 人大金仓数据库
-		*dsnOverride = fmt.Sprintf("kingbase://%s/%s?sslmode=disable&connect_timeout=%s", commonDSN, dbName, timeout)
-	case "sybase": //
-		*dsnOverride = fmt.Sprintf("tds://%s", commonDSN)
-	default:
-		return nil, fmt.Errorf("unsupported database type: %s", dbType)
+	resolvedDBType, resolvedDSN, err := buildDSN(dbType)
+	if err != nil {
+		return nil, err
 	}
+	dbType = resolvedDBType
+	*dsnOverride = resolvedDSN
 
 	// Override the DSN if requested (and in single target mode).
 	if *dsnOverride != "" {
@@ -354,6 +308,84 @@ func registerScrapeErrorMetric() *prometheus.CounterVec {
 	}, svcMetricLabels)
 	SvcRegistry.MustRegister(scrapeErrors)
 	return scrapeErrors
+}
+
+func buildDSN(dbType string) (string, string, error) {
+	switch dbType {
+	case "mysql", "gbase8a", "oceanbase":
+		return "mysql", buildMySQLDSN(), nil
+	case "postgres", "vastbase":
+		return "postgres", buildURLDSN("postgres", dbName, url.Values{"sslmode": {"disable"}}), nil
+	case "opengauss":
+		return "opengauss", buildURLDSN("opengauss", dbName, url.Values{"sslmode": {"disable"}}), nil
+	case "oracle":
+		return "oracle", buildURLDSN("oracle", dbName, nil), nil
+	case "sqlserver", "mssql":
+		params := url.Values{"encrypt": {"disable"}}
+		if dbName != "" {
+			params.Set("database", dbName)
+		}
+		return "sqlserver", buildURLDSN("sqlserver", "", params), nil
+	case "dm":
+		return "dm", buildDMDSN(), nil
+	case "kingbase":
+		params := url.Values{"sslmode": {"disable"}}
+		if timeout != "" {
+			params.Set("connect_timeout", timeout)
+		}
+		return "kingbase", buildURLDSN("kingbase", dbName, params), nil
+	case "sybase":
+		return "sybase", buildURLDSN("tds", dbName, nil), nil
+	default:
+		return "", "", fmt.Errorf("unsupported database type: %s", dbType)
+	}
+}
+
+func buildMySQLDSN() string {
+	// MySQL驱动特殊，不能先用特殊字符转换，直接丢入配置中。
+	cfg := mysql.Config{
+		User:                 os.Getenv("SQL_EXPORTER_USER"),
+		Passwd:               os.Getenv("SQL_EXPORTER_PASS"),
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%v:%v", host, port),
+		DBName:               dbName,
+		AllowNativePasswords: true,
+	}
+	return cfg.FormatDSN()
+}
+
+func buildDMDSN() string {
+	// 达梦密码含特殊字符时通常需要开启 escapeProcess，保留开关用于兼容旧驱动。
+	dmEscapeProcess := true
+	if value := strings.TrimSpace(os.Getenv("SQL_EXPORTER_DM_ESCAPE_PROCESS")); value != "" {
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			klog.Warningf("invalid SQL_EXPORTER_DM_ESCAPE_PROCESS=%q, defaulting to true", value)
+		} else {
+			dmEscapeProcess = parsed
+		}
+	}
+
+	params := url.Values{}
+	if dmEscapeProcess {
+		params.Set("escapeProcess", "true")
+	}
+	return buildURLDSN("dm", dbName, params)
+}
+
+func buildURLDSN(scheme string, database string, params url.Values) string {
+	u := &url.URL{
+		Scheme: scheme,
+		User:   url.UserPassword(rawUser, rawPassword),
+		Host:   fmt.Sprintf("%s:%s", host, port),
+	}
+	if database != "" {
+		u.Path = "/" + database
+	}
+	if len(params) > 0 {
+		u.RawQuery = params.Encode()
+	}
+	return u.String()
 }
 
 // split comma separated list of key=value pairs and return a map of key value pairs
