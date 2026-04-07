@@ -5,6 +5,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	. "github.com/dave/jennifer/jen"
 )
 
 const (
