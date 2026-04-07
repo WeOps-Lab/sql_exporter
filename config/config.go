@@ -78,16 +78,16 @@ func Load(configFile string, collectorFile string) (*Config, error) {
 
 // Config is a collection of jobs and collectors.
 type Config struct {
-	Globals         *GlobalConfig      `yaml:"global,omitempty" env:", prefix=GLOBAL_"`
-	CollectorFiles  []string           `yaml:"collector_files,omitempty" env:"COLLECTOR_FILES"`
-	Target          *TargetConfig      `yaml:"target,omitempty" env:", prefix=TARGET_"`
-	Jobs            []*JobConfig       `yaml:"jobs,omitempty"`
-	Collectors      []*CollectorConfig `yaml:"collectors,omitempty"`
-	CollectorDBType string             `yaml:"-" env:"-"`
+	Globals        *GlobalConfig      `yaml:"global,omitempty" env:", prefix=GLOBAL_"`
+	CollectorFiles []string           `yaml:"collector_files,omitempty" env:"COLLECTOR_FILES"`
+	Target         *TargetConfig      `yaml:"target,omitempty" env:", prefix=TARGET_"`
+	Jobs           []*JobConfig       `yaml:"jobs,omitempty"`
+	Collectors     []*CollectorConfig `yaml:"collectors,omitempty"`
 
-	configFile     string
-	collectorFile  string
-	useEmbedConfig bool
+	configFile      string
+	collectorFile   string
+	collectorDBType string
+	useEmbedConfig  bool
 	// Catches all undefined fields and must be empty after parsing.
 	XXX map[string]any `yaml:",inline" json:"-"`
 }
@@ -203,6 +203,11 @@ func (c *Config) YAML() ([]byte, error) {
 	return yaml.Marshal(c)
 }
 
+// GetCollectorDBType returns the database type resolved from collector files.
+func (c *Config) GetCollectorDBType() string {
+	return c.collectorDBType
+}
+
 // loadCollectorFiles resolves all collector file globs to files and loads the collectors they define.
 func (c *Config) loadCollectorFiles() error {
 	var baseDir string
@@ -241,10 +246,10 @@ func (c *Config) loadCollectorFiles() error {
 
 			if cc.DBType != "" {
 				collectorDBType := strings.ToLower(strings.TrimSpace(cc.DBType))
-				if c.CollectorDBType == "" {
-					c.CollectorDBType = collectorDBType
-				} else if c.CollectorDBType != collectorDBType {
-					return fmt.Errorf("collector db_type mismatch: %s defines %q but previous collector files use %q", cf, collectorDBType, c.CollectorDBType)
+				if c.collectorDBType == "" {
+					c.collectorDBType = collectorDBType
+				} else if c.collectorDBType != collectorDBType {
+					return fmt.Errorf("collector db_type mismatch: %s defines %q but previous collector files use %q", cf, collectorDBType, c.collectorDBType)
 				}
 			}
 
