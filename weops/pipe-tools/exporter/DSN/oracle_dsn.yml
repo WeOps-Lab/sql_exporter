@@ -4,14 +4,12 @@ metadata:
   name: oracle-dsn
   namespace: sql-exporter
 data:
-  SQL_EXPORTER_DB_TYPE: oracle
   SQL_EXPORTER_HOST: db21c-oracle-db.oracle
   SQL_EXPORTER_PASS: Weops123!
   SQL_EXPORTER_PORT: "1521"
   SQL_EXPORTER_DB_NAME: "ORCLCDB"
   SQL_EXPORTER_TIMEOUT: "5"
   SQL_EXPORTER_USER: system
-  COLLECTOR_REFS: oracle*
   SCRAPE_TIMEOUT_OFFSET: 500ms
   MIN_INTERVAL: 1s
   MAX_CONNECTIONS: "3"

@@ -4,13 +4,12 @@ metadata:
   name: gbase8a-dsn
   namespace: sql-exporter
 data:
-  SQL_EXPORTER_DB_TYPE: gbase8a
   SQL_EXPORTER_HOST: gbase8a.gbase8a
   SQL_EXPORTER_PASS: root
   SQL_EXPORTER_PORT: "5258"
+  SQL_EXPORTER_DB_NAME: "gbase"
   SQL_EXPORTER_TIMEOUT: "5"
   SQL_EXPORTER_USER: root
-  COLLECTOR_REFS: gbase*
   SCRAPE_TIMEOUT_OFFSET: 500ms
   MIN_INTERVAL: 1s
   MAX_CONNECTIONS: "3"

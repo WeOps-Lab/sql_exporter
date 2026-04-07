@@ -1,4 +1,5 @@
 # 达梦数据库查询结果为大写！
+db_type: dm
 collector_name: dm_sql
 
 # Similar to global.min_interval, but applies to the queries defined by this collector only.

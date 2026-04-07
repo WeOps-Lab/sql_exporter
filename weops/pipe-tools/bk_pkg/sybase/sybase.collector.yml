@@ -1,3 +1,4 @@
+db_type: sybase
 collector_name: sybase_sql
 
 # Similar to global.min_interval, but applies to the queries defined by this collector only.

@@ -1,4 +1,5 @@
 # 海量数据库查询结果返回小写
+db_type: vastbase
 collector_name: vastbase_sql
 
 # Similar to global.min_interval, but applies to the queries defined by this collector only.

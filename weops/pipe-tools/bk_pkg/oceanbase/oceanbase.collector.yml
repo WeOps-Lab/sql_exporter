@@ -1,5 +1,6 @@
 # A collector defining standard metrics for OceanBase.
 #
+db_type: oceanbase
 collector_name: oceanbase_standard
 
 # Similar to global.min_interval, but applies to the queries defined by this collector only.
@@ -555,7 +556,6 @@ queries:
         CASE WHEN sum(hold) > 0 THEN sum(used) * 100.0 / sum(hold) ELSE 0 END AS used_percent
       FROM GV$OB_MEMORY
       WHERE tenant_id = 500 AND MOD_NAME <> 'KvstorCacheMb'
-
 
 
 

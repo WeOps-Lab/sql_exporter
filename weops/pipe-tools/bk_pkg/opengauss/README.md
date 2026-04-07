@@ -28,14 +28,12 @@ CREATE USER weops PASSWORD 'Weops123!';
 |-------------------------|-------------------------------------------------------------|----------|----------------|
 | SQL_EXPORTER_USER       | 数据库用户名(环境变量)，特殊字符不需要编码转义                                    | 是        | SYSDBA         |
 | SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                     | 是        | SYSDBA001      |
-| SQL_EXPORTER_DB_TYPE    | 数据库类型(环境变量)                                                 | 是        | dm             |
 | SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                               | 是        | 127.0.0.1      |
 | SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                               | 是        | 5236           |
-| SQL_EXPORTER_DB_NAME    | 数据库名(环境变量)                                                  | 是        | postgres       |
-| COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，一般使用模糊匹配                        | 是        | opengauss*     |
+| COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，未配置时默认使用`collector.file`中的采集器 | 否        | opengauss*     |
 | SCRAPE_TIMEOUT          | 采集超时时间                                                      | 否        | 10s            |
 | MAX_CONNECTION_LIFETIME | 最长连接时长                                                      | 否        | 5m             |
-| --collector.file        | 采集指标配置文件路径(文件参数), *.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容 | 是        |                |
+| --collector.file        | 采集指标配置文件路径(文件参数), *.collector.yml 中需包含`db_type`、指标名、维度、sql等内容 | 是        |                |
 | --log.level             | 日志级别                                                        | 否        | info           |
 | --web.listen-address    | exporter监听IP及端口地址                                           | 否        | 127.0.0.1:9601 |
 

@@ -4,14 +4,12 @@ metadata:
   name: vastbase-dsn
   namespace: sql-exporter
 data:
-  SQL_EXPORTER_DB_TYPE: vastbase
   SQL_EXPORTER_HOST: vastbase.vastbase
   SQL_EXPORTER_PASS: alphay@123
   SQL_EXPORTER_PORT: "5432"
   SQL_EXPORTER_DB_NAME: "vastbase"
   SQL_EXPORTER_TIMEOUT: "5"
   SQL_EXPORTER_USER: alphay
-  COLLECTOR_REFS: vastbase*
   SCRAPE_TIMEOUT_OFFSET: 500ms
   MIN_INTERVAL: 1s
   MAX_CONNECTIONS: "3"

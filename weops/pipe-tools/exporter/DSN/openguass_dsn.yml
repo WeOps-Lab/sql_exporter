@@ -4,14 +4,12 @@ metadata:
   name: opengauss-dsn
   namespace: sql-exporter
 data:
-  SQL_EXPORTER_DB_TYPE: opengauss
   SQL_EXPORTER_HOST: opengauss-v5.opengauss
   SQL_EXPORTER_PASS: Weops123!
   SQL_EXPORTER_PORT: "5432"
   SQL_EXPORTER_DB_NAME: "postgres"
   SQL_EXPORTER_TIMEOUT: "5"
   SQL_EXPORTER_USER: weops
-  COLLECTOR_REFS: opengauss*
   SCRAPE_TIMEOUT_OFFSET: 500ms
   MIN_INTERVAL: 1s
   MAX_CONNECTIONS: "3"

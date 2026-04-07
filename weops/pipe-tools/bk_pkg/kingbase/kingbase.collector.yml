@@ -1,4 +1,5 @@
 # 人大金仓数据库查询结果大小写与输入一致
+db_type: kingbase
 collector_name: kingbase_sql
 
 # Similar to global.min_interval, but applies to the queries defined by this collector only.

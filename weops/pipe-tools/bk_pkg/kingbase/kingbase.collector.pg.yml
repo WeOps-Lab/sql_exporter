@@ -1,4 +1,5 @@
 # 人大金仓数据库pg模式下查询结果是小写
+db_type: kingbase
 collector_name: kingbase_sql_pg
 
 # Similar to global.min_interval, but applies to the queries defined by this collector only.
