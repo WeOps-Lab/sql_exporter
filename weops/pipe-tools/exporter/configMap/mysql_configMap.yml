@@ -5,6 +5,7 @@ metadata:
   namespace: sql-exporter
 data:
   mysql.collector.yml: |-
+    db_type: mysql
     collector_name: mysql_standard
     metrics:
       - metric_name: mysql_uptime

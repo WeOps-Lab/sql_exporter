@@ -6,6 +6,7 @@ metadata:
 data:
   gbase8a.collector.yml: |-
     # gbase数据库查询结果为小写！
+    db_type: gbase8a
     collector_name: gbase8a_sql
 
     # Similar to global.min_interval, but applies to the queries defined by this collector only.

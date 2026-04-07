@@ -5,6 +5,7 @@ metadata:
   namespace: sql-exporter
 data:
   mssql.collector.yml: |-
+    db_type: mssql
     collector_name: mssql_standard
     metrics:
       - metric_name: mssql_version

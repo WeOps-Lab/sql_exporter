@@ -5,6 +5,7 @@ metadata:
   namespace: sql-exporter
 data:
   oracle.collector.yml: |-
+    db_type: oracle
     collector_name: oracle_standard
     metrics:
       - metric_name: oracle_version

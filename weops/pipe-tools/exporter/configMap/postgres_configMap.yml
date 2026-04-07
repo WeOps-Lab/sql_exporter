@@ -5,6 +5,7 @@ metadata:
   namespace: sql-exporter
 data:
   postgres.collector.yml: |-
+    db_type: postgres
     collector_name: postgres_standard
     metrics:
       - metric_name: postgres_connections
