@@ -12,6 +12,7 @@ import (
 
 // CollectorConfig defines a set of metrics and how they are collected.
 type CollectorConfig struct {
+	DBType      string          `yaml:"db_type,omitempty"`      // database type used by this collector file
 	Name        string          `yaml:"collector_name"`         // name of this collector
 	MinInterval model.Duration  `yaml:"min_interval,omitempty"` // minimum interval between query executions
 	Metrics     []*MetricConfig `yaml:"metrics"`                // metrics/queries defined by this collector

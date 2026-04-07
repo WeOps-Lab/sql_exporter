@@ -81,7 +81,13 @@ func NewExporter(configFile string, collectorFile string) (Exporter, error) {
 	}
 
 	commonDSN := fmt.Sprintf("%v:%v@%v:%v", user, password, host, port)
-	dbType = strings.ToLower(dbType)
+	dbType = strings.ToLower(strings.TrimSpace(c.CollectorDBType))
+	if dbType == "" {
+		dbType = strings.ToLower(strings.TrimSpace(os.Getenv("SQL_EXPORTER_DB_TYPE")))
+		if dbType != "" {
+			klog.Warningf("SQL_EXPORTER_DB_TYPE is deprecated, please move db_type into the collector file")
+		}
+	}
 
 	switch dbType {
 	case "mysql", "gbase8a", "oceanbase":

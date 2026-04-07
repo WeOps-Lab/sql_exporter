@@ -7,6 +7,7 @@ import (
 	"github.com/prometheus/common/model"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/sethvargo/go-envconfig"
@@ -77,11 +78,12 @@ func Load(configFile string, collectorFile string) (*Config, error) {
 
 // Config is a collection of jobs and collectors.
 type Config struct {
-	Globals        *GlobalConfig      `yaml:"global,omitempty" env:", prefix=GLOBAL_"`
-	CollectorFiles []string           `yaml:"collector_files,omitempty" env:"COLLECTOR_FILES"`
-	Target         *TargetConfig      `yaml:"target,omitempty" env:", prefix=TARGET_"`
-	Jobs           []*JobConfig       `yaml:"jobs,omitempty"`
-	Collectors     []*CollectorConfig `yaml:"collectors,omitempty"`
+	Globals         *GlobalConfig      `yaml:"global,omitempty" env:", prefix=GLOBAL_"`
+	CollectorFiles  []string           `yaml:"collector_files,omitempty" env:"COLLECTOR_FILES"`
+	Target          *TargetConfig      `yaml:"target,omitempty" env:", prefix=TARGET_"`
+	Jobs            []*JobConfig       `yaml:"jobs,omitempty"`
+	Collectors      []*CollectorConfig `yaml:"collectors,omitempty"`
+	CollectorDBType string             `yaml:"-" env:"-"`
 
 	configFile     string
 	collectorFile  string
@@ -235,6 +237,15 @@ func (c *Config) loadCollectorFiles() error {
 			err = yaml.Unmarshal(buf, &cc)
 			if err != nil {
 				return err
+			}
+
+			if cc.DBType != "" {
+				collectorDBType := strings.ToLower(strings.TrimSpace(cc.DBType))
+				if c.CollectorDBType == "" {
+					c.CollectorDBType = collectorDBType
+				} else if c.CollectorDBType != collectorDBType {
+					return fmt.Errorf("collector db_type mismatch: %s defines %q but previous collector files use %q", cf, collectorDBType, c.CollectorDBType)
+				}
 			}
 
 			c.Collectors = append(c.Collectors, &cc)
