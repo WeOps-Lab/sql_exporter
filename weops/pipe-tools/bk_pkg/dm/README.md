@@ -57,7 +57,6 @@ GRANT SOI TO weops;
 | SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                       | 是        | SYSDBA001      |
 | SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                                 | 是        | 127.0.0.1      |
 | SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                                 | 是        | 5236           |
-| SQL_EXPORTER_DB_NAME    | 数据库名称(环境变量)，未配置时使用数据库默认上下文                                      | 否        | DAMENG         |
 | COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，未配置时默认使用`collector.file`中的采集器     | 否        | dm*            |
 | SCRAPE_TIMEOUT          | 采集超时时间                                                        | 否        | 10s            |
 | MAX_CONNECTION_LIFETIME | 最长连接时长                                                        | 否        | 5m             |
@@ -133,6 +132,6 @@ GRANT SOI TO weops;
   dm_exporter_asm_real_used_ratio -> dm_exporter_asm_real_used_percent
 
 #### weops_dm_exporter v4.2.1
-- 补充 `SQL_EXPORTER_DB_NAME` 参数说明
+- 达梦连接不再使用 `SQL_EXPORTER_DB_NAME`，默认按数据库当前模式连接
 - 达梦连接默认追加 `escapeProcess=true`，修复密码含特殊字符时认证失败的问题
 - 新增环境变量 `SQL_EXPORTER_DM_ESCAPE_PROCESS`，默认 `true`，可显式设为 `false` 兼容旧驱动

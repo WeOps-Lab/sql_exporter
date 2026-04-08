@@ -370,7 +370,8 @@ func buildDMDSN() string {
 	if dmEscapeProcess {
 		params.Set("escapeProcess", "true")
 	}
-	return buildURLDSN("dm", dbName, params)
+	// 达梦这里不拼接 SQL_EXPORTER_DB_NAME，始终使用默认模式连接。
+	return buildURLDSN("dm", "", params)
 }
 
 func buildURLDSN(scheme string, database string, params url.Values) string {
