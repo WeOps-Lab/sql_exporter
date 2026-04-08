@@ -97,5 +97,5 @@ GRANT SELECT ON *.* TO 'weops';
 - 基础探针移除采集器全局配置文件
 - 更新说明文档
 
-#### weops_gbase8a_exporter 4.1.2
+#### weops_gbase8a_exporter 4.2.1
 - 补充 `SQL_EXPORTER_DB_NAME` 参数说明
