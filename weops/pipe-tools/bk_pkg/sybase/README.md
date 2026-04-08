@@ -42,6 +42,7 @@ Msg: 12052, Level: 17, State: 1\nServer: MYSYBASE, Procedure: gtds1, Line: 1:\nC
 | SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                     | 是        | myPassword     |
 | SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                               | 是        | 127.0.0.1      |
 | SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                               | 是        | 5000           |
+| SQL_EXPORTER_DB_NAME    | 数据库名称(环境变量)，未配置时使用登录账号的默认数据库                              | 否        | sybase         |
 | COLLECTOR_REFS          | 采集指标配置名称，对应`collector_name`，未配置时默认使用`collector.file`中的采集器 | 否        | sybase*        |
 | SCRAPE_TIMEOUT          | 采集超时时间                                                      | 否        | 10s            |
 | MAX_CONNECTION_LIFETIME | 最长连接时长                                                      | 否        | 5m             |
@@ -84,4 +85,7 @@ Msg: 12052, Level: 17, State: 1\nServer: MYSYBASE, Procedure: gtds1, Line: 1:\nC
 ### 版本日志
 
 #### weops_sybase_exporter v4.1.2
+
+#### weops_sybase_exporter v4.2.1
+- 补充 `SQL_EXPORTER_DB_NAME` 参数说明
 - weops调整

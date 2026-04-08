@@ -31,6 +31,7 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 | SQL_EXPORTER_PASS        | 数据库密码(环境变量)，特殊字符不需要编码转义                                                                                       | 是        | SYSDBA001       |
 | SQL_EXPORTER_HOST        | 数据库服务IP(环境变量)                                                                                                 | 是        | 127.0.0.1       |
 | SQL_EXPORTER_PORT        | 数据库服务端口(环境变量)                                                                                                 | 是        | 5236            |
+| SQL_EXPORTER_DB_NAME     | 数据库名称(环境变量)，未配置时使用数据库默认上下文                                                                                 | 否        | testdb          |
 | SQL_EXPORTER_TIMEOUT     | 数据库连接的最长等待时间(环境变量)，单位为秒，0值或未指定均为无限等待                                                                          | 是        | 5               |
 | KINGBASE_DATABASE_MODE   | 人大金仓数据库模式(环境变量)，支持oracle、mysql、pg模式                                                                           | 是        | pg              |
 | collector.file.content   | kingbase.collector.yml 采集指标配置文件, 包含指标名、维度、sql等内容。默认模式支持oracle或mysql。**注意！该参数为文件参数，非探针执行文件参数！**                | 是        | 默认已有标准采集指标配置文件) |
@@ -98,3 +99,6 @@ CREATE USER weops WITH PASSWORD 'Weops123!';
 
 #### weops_kingbase_exporter v4.1.2
 - 修复kingbase数据库监控探针无法启动问题
+
+#### weops_kingbase_exporter v4.2.1
+- 补充 `SQL_EXPORTER_DB_NAME` 参数说明
