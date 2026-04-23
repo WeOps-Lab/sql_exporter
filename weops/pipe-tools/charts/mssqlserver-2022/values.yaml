@@ -47,5 +47,21 @@ resources:
   # requests:
   #  cpu: 100m
   #  memory: 2Gi
+bootstrap:
+  enabled: true
+  image:
+    repository: registry-svc:25000/library/mssql-tools
+    tag: latest
+    pullPolicy: IfNotPresent
+  backoffLimit: 6
+  waitAttempts: 60
+  waitIntervalSeconds: 5
+  exporterUser: monitoring_user
+  exporterPassword: Weops123!
+  controlDatabase: weops_db_a
+  targetDatabase: weops_db_b
+  probeTable: exporter_probe
+  controlProbeRows: 2
+  targetProbeRows: 5
 nodeSelector: {}
   # kubernetes.io/hostname: microk8s
