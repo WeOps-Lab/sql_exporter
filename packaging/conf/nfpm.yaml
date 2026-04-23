@@ -18,8 +18,8 @@ contents:
 - src: ./examples/sql_exporter.yml
   dst: /usr/share/sql_exporter/sql_exporter.yml
   type: config
-- src: ./examples/mssql_standard.collector.yml
-  dst: /usr/share/sql_exporter/mssql_example.collector.yml
+- src: ./weops/pipe-tools/bk_pkg/mssql/mssql.collector.yml
+  dst: /usr/share/sql_exporter/mssql.collector.yml
   type: config
 
 - src: ./packaging/conf/sql_exporter.default

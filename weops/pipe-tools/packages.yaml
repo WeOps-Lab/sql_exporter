@@ -1,0 +1,80 @@
+packages:
+  - name: weops_minimal_exporter
+    db: minimal
+    driver_profile: minimal
+    bk_pkg_dir: bk_pkg/minimal
+    plugin_id: weops_minimal_exporter
+    display_name: 通用数据库监控探针(基础版)
+    readme: bk_pkg/minimal/README.md
+
+  - name: weops_all_exporter
+    db: all
+    driver_profile: all
+    bk_pkg_dir: bk_pkg/all
+    plugin_id: weops_all_exporter
+    display_name: 通用数据库监控探针(全量版)
+    readme: bk_pkg/all/README.md
+
+  - name: weops_dm_exporter
+    db: dm
+    driver_profile: dm
+    bk_pkg_dir: bk_pkg/dm
+    plugin_id: weops_dm_exporter
+    display_name: 达梦数据库监控探针
+    readme: bk_pkg/dm/README.md
+
+  - name: weops_mssql_exporter
+    db: mssql
+    driver_profile: mssql
+    bk_pkg_dir: bk_pkg/mssql
+    plugin_id: weops_mssql_exporter
+    display_name: SQL Server数据库监控探针
+    readme: bk_pkg/mssql/README.md
+
+  - name: weops_kingbase_exporter
+    db: kingbase
+    driver_profile: kingbase
+    bk_pkg_dir: bk_pkg/kingbase
+    plugin_id: weops_kingbase_exporter
+    display_name: 人大金仓数据库监控探针
+    readme: bk_pkg/kingbase/README.md
+
+  - name: weops_opengauss_exporter
+    db: opengauss
+    driver_profile: opengauss
+    bk_pkg_dir: bk_pkg/opengauss
+    plugin_id: weops_opengauss_exporter
+    display_name: openGauss数据库监控探针
+    readme: bk_pkg/opengauss/README.md
+
+  - name: weops_gbase8a_exporter
+    db: gbase8a
+    driver_profile: gbase8a
+    bk_pkg_dir: bk_pkg/gbase8a
+    plugin_id: weops_gbase8a_exporter
+    display_name: GBase8a数据库监控探针
+    readme: bk_pkg/gbase8a/README.md
+
+  - name: weops_oceanbase_exporter
+    db: oceanbase
+    driver_profile: oceanbase
+    bk_pkg_dir: bk_pkg/oceanbase
+    plugin_id: weops_oceanbase_exporter
+    display_name: OceanBase数据库监控探针
+    readme: bk_pkg/oceanbase/README.md
+
+  - name: weops_sybase_exporter
+    db: sybase
+    driver_profile: sybase
+    bk_pkg_dir: bk_pkg/sybase
+    plugin_id: weops_sybase_exporter
+    display_name: Sybase数据库监控探针
+    readme: bk_pkg/sybase/README.md
+
+  - name: weops_vastbase_exporter
+    db: vastbase
+    driver_profile: postgres
+    bk_pkg_dir: bk_pkg/vastbase
+    plugin_id: weops_vastbase_exporter
+    display_name: 海量数据库监控探针
+    readme: bk_pkg/vastbase/README.md
