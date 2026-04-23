@@ -1,0 +1,365 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-probe-dsn-2022
+  namespace: sql-exporter
+data:
+  SQL_EXPORTER_HOST: mssqlserver-2022.mssql
+  SQL_EXPORTER_PASS: Weops123!
+  SQL_EXPORTER_PORT: "1433"
+  SQL_EXPORTER_DB_NAME: "master"
+  SQL_EXPORTER_TIMEOUT: "5"
+  SQL_EXPORTER_USER: monitoring_user
+  SCRAPE_TIMEOUT_OFFSET: 500ms
+  MIN_INTERVAL: 1s
+  MAX_CONNECTIONS: "3"
+  MAX_IDLE_CONNECTIONS: "3"
+  MAX_CONNECTION_LIFETIME: 3m
+  SCRAPE_TIMEOUT: 20s
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-probe-dsn-2019
+  namespace: sql-exporter
+data:
+  SQL_EXPORTER_HOST: mssqlserver-2019.mssql
+  SQL_EXPORTER_PASS: Weops123!
+  SQL_EXPORTER_PORT: "1433"
+  SQL_EXPORTER_DB_NAME: "master"
+  SQL_EXPORTER_TIMEOUT: "5"
+  SQL_EXPORTER_USER: monitoring_user
+  SCRAPE_TIMEOUT_OFFSET: 500ms
+  MIN_INTERVAL: 1s
+  MAX_CONNECTIONS: "3"
+  MAX_IDLE_CONNECTIONS: "3"
+  MAX_CONNECTION_LIFETIME: 3m
+  SCRAPE_TIMEOUT: 20s
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-probe-dsn-2017
+  namespace: sql-exporter
+data:
+  SQL_EXPORTER_HOST: mssql-2017-mssql-linux.mssql
+  SQL_EXPORTER_PASS: Weops123!
+  SQL_EXPORTER_PORT: "1433"
+  SQL_EXPORTER_DB_NAME: "master"
+  SQL_EXPORTER_TIMEOUT: "5"
+  SQL_EXPORTER_USER: monitoring_user
+  SCRAPE_TIMEOUT_OFFSET: 500ms
+  MIN_INTERVAL: 1s
+  MAX_CONNECTIONS: "3"
+  MAX_IDLE_CONNECTIONS: "3"
+  MAX_CONNECTION_LIFETIME: 3m
+  SCRAPE_TIMEOUT: 20s
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sql-exporter-mssql-probe-2022
+  namespace: sql-exporter
+spec:
+  serviceName: sql-exporter-mssql-probe-2022
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-exporter-mssql-probe-2022
+  template:
+    metadata:
+      annotations:
+        telegraf.influxdata.com/interval: 1s
+        telegraf.influxdata.com/inputs: |+
+          [[inputs.cpu]]
+            percpu = false
+            totalcpu = true
+            collect_cpu_time = true
+            report_active = true
+
+          [[inputs.disk]]
+            ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+
+          [[inputs.diskio]]
+
+          [[inputs.kernel]]
+
+          [[inputs.mem]]
+
+          [[inputs.processes]]
+
+          [[inputs.system]]
+            fielddrop = ["uptime_format"]
+
+          [[inputs.net]]
+            ignore_protocol_stats = true
+
+          [[inputs.procstat]]
+            pattern = "exporter"
+        telegraf.influxdata.com/class: opentsdb
+        telegraf.influxdata.com/env-fieldref-NAMESPACE: metadata.namespace
+        telegraf.influxdata.com/limits-cpu: '300m'
+        telegraf.influxdata.com/limits-memory: '300Mi'
+      labels:
+        app: sql-exporter-mssql-probe-2022
+        exporter_type: sql-exporter
+        pod_type: exporter
+        db_type: mssql
+        db_version: "2022"
+    spec:
+      nodeSelector:
+        node-role: worker
+      shareProcessNamespace: true
+      volumes:
+        - name: mssql-probe-sql-config
+          configMap:
+            name: mssql-probe-sql-config
+      containers:
+        - name: sql-exporter-mssql-probe-2022
+          image: registry-svc:25000/library/sql-exporter-all:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: mssql-probe-dsn-2022
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          args:
+            - --collector.file=/collector/mssql.collector.yml
+          volumeMounts:
+            - mountPath: /collector
+              name: mssql-probe-sql-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 300m
+              memory: 300Mi
+          ports:
+            - containerPort: 9399
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sql-exporter-mssql-probe-2022
+  name: sql-exporter-mssql-probe-2022
+  namespace: sql-exporter
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9399"
+    prometheus.io/path: '/metrics'
+spec:
+  ports:
+    - port: 9399
+      protocol: TCP
+      targetPort: 9399
+  selector:
+    app: sql-exporter-mssql-probe-2022
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sql-exporter-mssql-probe-2019
+  namespace: sql-exporter
+spec:
+  serviceName: sql-exporter-mssql-probe-2019
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-exporter-mssql-probe-2019
+  template:
+    metadata:
+      annotations:
+        telegraf.influxdata.com/interval: 1s
+        telegraf.influxdata.com/inputs: |+
+          [[inputs.cpu]]
+            percpu = false
+            totalcpu = true
+            collect_cpu_time = true
+            report_active = true
+
+          [[inputs.disk]]
+            ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+
+          [[inputs.diskio]]
+
+          [[inputs.kernel]]
+
+          [[inputs.mem]]
+
+          [[inputs.processes]]
+
+          [[inputs.system]]
+            fielddrop = ["uptime_format"]
+
+          [[inputs.net]]
+            ignore_protocol_stats = true
+
+          [[inputs.procstat]]
+            pattern = "exporter"
+        telegraf.influxdata.com/class: opentsdb
+        telegraf.influxdata.com/env-fieldref-NAMESPACE: metadata.namespace
+        telegraf.influxdata.com/limits-cpu: '300m'
+        telegraf.influxdata.com/limits-memory: '300Mi'
+      labels:
+        app: sql-exporter-mssql-probe-2019
+        exporter_type: sql-exporter
+        pod_type: exporter
+        db_type: mssql
+        db_version: "2019"
+    spec:
+      nodeSelector:
+        node-role: worker
+      shareProcessNamespace: true
+      volumes:
+        - name: mssql-probe-sql-config
+          configMap:
+            name: mssql-probe-sql-config
+      containers:
+        - name: sql-exporter-mssql-probe-2019
+          image: registry-svc:25000/library/sql-exporter-all:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: mssql-probe-dsn-2019
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          args:
+            - --collector.file=/collector/mssql.collector.yml
+          volumeMounts:
+            - mountPath: /collector
+              name: mssql-probe-sql-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 300m
+              memory: 300Mi
+          ports:
+            - containerPort: 9399
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sql-exporter-mssql-probe-2019
+  name: sql-exporter-mssql-probe-2019
+  namespace: sql-exporter
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9399"
+    prometheus.io/path: '/metrics'
+spec:
+  ports:
+    - port: 9399
+      protocol: TCP
+      targetPort: 9399
+  selector:
+    app: sql-exporter-mssql-probe-2019
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sql-exporter-mssql-probe-2017
+  namespace: sql-exporter
+spec:
+  serviceName: sql-exporter-mssql-probe-2017
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-exporter-mssql-probe-2017
+  template:
+    metadata:
+      annotations:
+        telegraf.influxdata.com/interval: 1s
+        telegraf.influxdata.com/inputs: |+
+          [[inputs.cpu]]
+            percpu = false
+            totalcpu = true
+            collect_cpu_time = true
+            report_active = true
+
+          [[inputs.disk]]
+            ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+
+          [[inputs.diskio]]
+
+          [[inputs.kernel]]
+
+          [[inputs.mem]]
+
+          [[inputs.processes]]
+
+          [[inputs.system]]
+            fielddrop = ["uptime_format"]
+
+          [[inputs.net]]
+            ignore_protocol_stats = true
+
+          [[inputs.procstat]]
+            pattern = "exporter"
+        telegraf.influxdata.com/class: opentsdb
+        telegraf.influxdata.com/env-fieldref-NAMESPACE: metadata.namespace
+        telegraf.influxdata.com/limits-cpu: '300m'
+        telegraf.influxdata.com/limits-memory: '300Mi'
+      labels:
+        app: sql-exporter-mssql-probe-2017
+        exporter_type: sql-exporter
+        pod_type: exporter
+        db_type: mssql
+        db_version: "2017"
+    spec:
+      nodeSelector:
+        node-role: worker
+      shareProcessNamespace: true
+      volumes:
+        - name: mssql-probe-sql-config
+          configMap:
+            name: mssql-probe-sql-config
+      containers:
+        - name: sql-exporter-mssql-probe-2017
+          image: registry-svc:25000/library/sql-exporter-all:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: mssql-probe-dsn-2017
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          args:
+            - --collector.file=/collector/mssql.collector.yml
+          volumeMounts:
+            - mountPath: /collector
+              name: mssql-probe-sql-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 300m
+              memory: 300Mi
+          ports:
+            - containerPort: 9399
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sql-exporter-mssql-probe-2017
+  name: sql-exporter-mssql-probe-2017
+  namespace: sql-exporter
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9399"
+    prometheus.io/path: '/metrics'
+spec:
+  ports:
+    - port: 9399
+      protocol: TCP
+      targetPort: 9399
+  selector:
+    app: sql-exporter-mssql-probe-2017
