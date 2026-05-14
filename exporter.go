@@ -371,13 +371,16 @@ func buildDMDSN() string {
 		params.Set("escapeProcess", "true")
 	}
 	// 达梦这里不拼接 SQL_EXPORTER_DB_NAME，始终使用默认模式连接。
-	return buildURLDSN("dm", "", params)
+	return buildURLDSNWithUserinfo("dm", "", params, buildDMUserinfo())
 }
 
 func buildURLDSN(scheme string, database string, params url.Values) string {
+	return buildURLDSNWithUserinfo(scheme, database, params, url.UserPassword(rawUser, rawPassword).String())
+}
+
+func buildURLDSNWithUserinfo(scheme string, database string, params url.Values, userinfo string) string {
 	u := &url.URL{
 		Scheme: scheme,
-		User:   url.UserPassword(rawUser, rawPassword),
 		Host:   fmt.Sprintf("%s:%s", host, port),
 	}
 	if database != "" {
@@ -386,7 +389,20 @@ func buildURLDSN(scheme string, database string, params url.Values) string {
 	if len(params) > 0 {
 		u.RawQuery = params.Encode()
 	}
-	return u.String()
+	if userinfo == "" {
+		return u.String()
+	}
+	return fmt.Sprintf("%s://%s@%s", scheme, userinfo, strings.TrimPrefix(u.String(), scheme+"://"))
+}
+
+func buildDMUserinfo() string {
+	if rawUser == "" {
+		return ""
+	}
+	if rawPassword == "" {
+		return url.UserPassword(rawUser, "").String()
+	}
+	return fmt.Sprintf("%s:%s", url.User(rawUser).String(), url.PathEscape(rawPassword))
 }
 
 // split comma separated list of key=value pairs and return a map of key value pairs
