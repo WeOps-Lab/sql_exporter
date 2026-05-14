@@ -24,7 +24,7 @@ oceanbase: v4.x+
 
 | **参数名**                 | **含义**                                                      | **是否必填** | **使用举例**       |
 |-------------------------|-------------------------------------------------------------|----------|----------------|
-| SQL_EXPORTER_USER       | 数据库用户名(环境变量)，特殊字符不需要编码转义                                    | 是        | root           |
+| SQL_EXPORTER_USER       | 数据库登录用户名(环境变量，需包含租户名)，特殊字符不需要编码转义                         | 是        | weops@sys      |
 | SQL_EXPORTER_PASS       | 数据库密码(环境变量)，特殊字符不需要编码转义                                     | 是        |                |
 | SQL_EXPORTER_HOST       | 数据库服务IP(环境变量)                                               | 是        | 127.0.0.1      |
 | SQL_EXPORTER_PORT       | 数据库服务端口(环境变量)                                               | 是        | 2881           |
@@ -39,25 +39,137 @@ oceanbase: v4.x+
 
 ### 使用指引
 
-> **注意：** 创建监控账户需要使用超级管理员权限（root@sys）连接数据库。
+> **注意：** 当前插件内置 SQL 基于 OceanBase v4.x 系统视图并使用 MySQL 协议采集，推荐使用 `sys` 租户下的只读监控账号，例如 `weops@sys`。
 
-#### 1. 使用超管权限连接到 OceanBase 数据库
+#### 1. 先确认登录账号属于哪个租户
+
+OceanBase 常见登录名格式如下：
+
+- 直连 Observer：`username@tenant`
+- 通过 OBProxy / ODP：`username@tenant#cluster`
+
+其中，`@` 后、`#` 前的部分就是租户名。
+
+例如：
+
+- `weops@sys` 表示 `weops` 用户属于 `sys` 租户
+- `weops@monitor_tenant#obcluster` 表示 `weops` 用户属于 `monitor_tenant` 租户
+
+#### 2. 确认账号所属租户的兼容模式
+
+推荐做法：直接使用目标账号登录其所属租户，然后执行以下 SQL：
+
+```sql
+SHOW VARIABLES LIKE 'ob_compatibility_mode';
+```
+
+返回值通常为：
+
+- `MYSQL`：MySQL 模式租户
+- `ORACLE`：Oracle 模式租户
+
+如需先在 `sys` 租户中查看现有租户列表，可执行：
+
+```sql
+SELECT tenant_id, tenant_name, tenant_type
+FROM oceanbase.DBA_OB_TENANTS;
+```
+
+#### 3. 推荐方案：在 `sys` 租户创建监控用户并授权
+
+> 推荐优先使用该方案。业务租户即使是 Oracle 模式，也可以通过 `sys` 租户系统视图统一采集集群级和租户级监控指标，无需额外改造业务租户。
+
+先使用超管权限连接到 OceanBase：
 
 ```bash
 obclient -h127.0.0.1 -P2881 -uroot@sys -p
 ```
 
-#### 2. 创建监控用户并授权（需超管权限）
+在 `root@sys` 下执行 `CREATE USER` 创建的是 `sys` 租户内的用户，不会创建新租户。
 
 ```sql
--- 创建监控用户
+-- 创建 sys 租户下的监控用户
 CREATE USER 'weops' IDENTIFIED BY 'weops@123!';
 
 -- 授予查询权限（用于采集监控指标）
 GRANT SELECT ON *.* TO 'weops';
 ```
 
-#### 3. 所需系统视图权限说明
+登录时请显式带上租户名：
+
+```bash
+obclient -h127.0.0.1 -P2881 -uweops@sys -p'weops@123!'
+```
+
+#### 4. 可选方案：单独准备 MySQL 模式监控租户
+
+> 仅当客户安全策略不允许直接使用 `sys` 租户监控账号时再考虑此方案。默认仍推荐 `sys` 方案。
+>
+> **注意：** 当前插件内置 SQL 默认基于 `sys` 侧系统视图设计。如果改为独立监控租户，请先确认 DBA 已为该租户开放所需系统视图访问能力，否则部分指标可能无法采集。
+
+客户只有 `Oracle` 租户时，需要额外创建一个 `MySQL` 模式监控租户供插件使用。
+
+操作步骤：
+
+1. 登录 `sys` 租户
+
+```bash
+obclient -h<host> -P<port> -uroot@sys -p
+```
+
+2. 创建 `MySQL` 模式监控租户
+
+如果提示 `resource pool 'monitor_pool' not exist`，请先创建资源单元和资源池，例如：
+
+```sql
+CREATE RESOURCE UNIT monitor_unit
+  MAX_CPU = 1,
+  MIN_CPU = 1,
+  MEMORY_SIZE = '2G',
+  LOG_DISK_SIZE = '2G';
+
+CREATE RESOURCE POOL monitor_pool
+  UNIT = 'monitor_unit',
+  UNIT_NUM = 1,
+  ZONE_LIST = ('zone1');
+```
+
+其中 `zone1` 请替换为现场实际 Zone 名称，可先执行 `SELECT zone FROM oceanbase.DBA_OB_ZONES;` 查看。
+
+```sql
+CREATE TENANT monitor_tenant
+  RESOURCE_POOL_LIST = ('monitor_pool')
+  SET ob_compatibility_mode = 'mysql',
+      ob_tcp_invited_nodes = '%';
+```
+
+3. 登录监控租户并创建监控账号
+
+```bash
+obclient -h<host> -P<port> -uroot@monitor_tenant -p
+```
+
+```sql
+CREATE USER 'weops' IDENTIFIED BY 'weops@123!';
+GRANT SELECT ON *.* TO 'weops';
+```
+
+4. 验证租户模式
+
+```sql
+SHOW VARIABLES LIKE 'ob_compatibility_mode';
+```
+
+返回 `MYSQL` 后即可用于插件监控。
+
+5. 插件接入账号
+
+- 用户名：`weops@monitor_tenant`
+- 密码：`weops@123!`
+
+说明：`ob_compatibility_mode` 不能单独用 `SET` 修改，必须在 `CREATE TENANT` 时指定；`Oracle` 租户创建后也不能改成 `MySQL` 模式。如果走 ODP / OBProxy，用户名一般写成 `weops@monitor_tenant#集群名`。
+
+#### 5. 所需系统视图权限说明
 
 监控采集需要访问以下系统视图，请确保监控用户具有这些视图的 SELECT 权限：
 
@@ -78,11 +190,14 @@ GRANT SELECT ON *.* TO 'weops';
 | CDB_TABLES               | 获取表数量统计              |
 | CDB_INDEXES              | 获取索引状态信息             |
 
-#### 4. 验证权限
+#### 6. 验证权限
 
 ```sql
 -- 使用监控用户登录验证
-obclient -h127.0.0.1 -P2881 -uweops -p'weops@123!'
+obclient -h127.0.0.1 -P2881 -uweops@sys -p'weops@123!'
+
+-- 确认当前账号所在租户模式
+SHOW VARIABLES LIKE 'ob_compatibility_mode';
 
 -- 测试查询系统视图
 SELECT count(*) FROM DBA_OB_SERVERS;
@@ -155,3 +270,6 @@ SELECT count(*) FROM v$sysstat;
 
 #### weops_oceanbase_exporter v4.2.1
 - 补充 `SQL_EXPORTER_DB_NAME` 参数说明
+
+#### weops_oceanbase_exporter v4.2.2
+- 补充 OceanBase `Oracle` 租户场景下创建 `MySQL` 监控租户的简化指引
