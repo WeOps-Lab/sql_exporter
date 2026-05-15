@@ -135,3 +135,8 @@ GRANT SOI TO weops;
 - 达梦连接不再使用 `SQL_EXPORTER_DB_NAME`，默认按数据库当前模式连接
 - 达梦连接默认追加 `escapeProcess=true`，修复密码含特殊字符时认证失败的问题
 - 新增环境变量 `SQL_EXPORTER_DM_ESCAPE_PROCESS`，默认 `true`，可显式设为 `false` 兼容旧驱动
+
+#### weops_dm_exporter v4.2.2
+- 达梦连接在拼接 DSN 前，对密码执行 `url.PathEscape` 处理，修复 `/`、`?`、`#` 等特殊字符导致的认证失败问题
+- 达梦连接默认在 URL 中追加 `escapeProcess=true`，提升特殊字符密码场景的兼容性
+- 补充达梦特殊字符密码连接处理说明
