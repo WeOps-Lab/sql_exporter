@@ -399,10 +399,8 @@ func buildDMUserinfo() string {
 	if rawUser == "" {
 		return ""
 	}
-	if rawPassword == "" {
-		return url.UserPassword(rawUser, "").String()
-	}
-	return fmt.Sprintf("%s:%s", url.User(rawUser).String(), url.PathEscape(rawPassword))
+	// DM 驱动不会对 userinfo 做 URL 解码，特殊字符必须原样传入。
+	return fmt.Sprintf("%s:%s", rawUser, rawPassword)
 }
 
 // split comma separated list of key=value pairs and return a map of key value pairs
