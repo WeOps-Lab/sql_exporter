@@ -4,3 +4,7 @@
 /sql_exporter
 /sql_exporter.yml
 .idea/*
+
+# 打包产物（package.sh 生成）
+/dist/
+weops/pipe-tools/bk_pkg/*/bin/
