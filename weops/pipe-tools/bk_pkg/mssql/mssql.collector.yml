@@ -219,6 +219,70 @@ metrics:
       FROM sys.dm_os_performance_counters
       WHERE counter_name = 'Processes blocked'
 
+  - metric_name: mssql_session_blocked_seconds_in_wait
+    type: gauge
+    help: "Current blocked wait time in seconds for blocked and blocking sessions."
+    key_labels:
+      - block_role
+      - server_name
+      - db
+      - session_id
+      - blocking_session_id
+      - hostname
+      - loginame
+      - program_name
+    values: [wait_seconds]
+    query: |
+      SELECT
+        N'blocked' AS block_role,
+        @@SERVERNAME AS server_name,
+        c.name AS db,
+        CAST(a.session_id AS VARCHAR(32)) AS session_id,
+        CAST(a.blocking_session_id AS VARCHAR(32)) AS blocking_session_id,
+        CAST(a.wait_time / 1000.0 AS DECIMAL(18,2)) AS wait_seconds,
+        LTRIM(RTRIM(ISNULL(b.hostname, ''))) AS hostname,
+        LTRIM(RTRIM(ISNULL(b.loginame, ''))) AS loginame,
+        LTRIM(RTRIM(ISNULL(b.program_name, ''))) AS program_name
+      FROM sys.dm_exec_requests a WITH (NOLOCK)
+      LEFT JOIN master.dbo.sysprocesses b WITH (NOLOCK)
+        ON b.spid = a.session_id
+      LEFT JOIN sys.databases c WITH (NOLOCK)
+        ON c.database_id = b.dbid
+      WHERE a.blocking_session_id <> 0
+        AND a.wait_time > 0
+
+      UNION ALL
+
+      SELECT
+        N'blocking' AS block_role,
+        @@SERVERNAME AS server_name,
+        g.name AS db,
+        CAST(e.blocking_session_id AS VARCHAR(32)) AS session_id,
+        CAST(0 AS VARCHAR(32)) AS blocking_session_id,
+        CAST(MAX(e.wait_time) / 1000.0 AS DECIMAL(18,2)) AS wait_seconds,
+        LTRIM(RTRIM(ISNULL(f.hostname, ''))) AS hostname,
+        LTRIM(RTRIM(ISNULL(f.loginame, ''))) AS loginame,
+        LTRIM(RTRIM(ISNULL(f.program_name, ''))) AS program_name
+      FROM sys.sysprocesses f WITH (NOLOCK)
+      LEFT JOIN sys.dm_exec_requests e WITH (NOLOCK)
+        ON f.spid = e.blocking_session_id
+      LEFT JOIN sys.databases g WITH (NOLOCK)
+        ON g.database_id = f.dbid
+      WHERE e.blocking_session_id <> 0
+        AND e.wait_time > 0
+        AND e.blocking_session_id NOT IN (
+          SELECT a.session_id
+          FROM sys.dm_exec_requests a WITH (NOLOCK)
+          WHERE a.blocking_session_id <> 0
+            AND a.wait_time > 0
+        )
+      GROUP BY
+        g.name,
+        e.blocking_session_id,
+        f.hostname,
+        f.loginame,
+        f.program_name
+
   - metric_name: mssql_db_file_used_ratio
     type: gauge
     help: "The database file usage ratio."
