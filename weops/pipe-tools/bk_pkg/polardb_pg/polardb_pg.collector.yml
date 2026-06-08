@@ -1,0 +1,597 @@
+db_type: polardb_pg
+collector_name: polardb_pg_sql
+
+metrics:
+  - metric_name: polardb_pg_exporter_io_read_count
+    type: counter
+    help: 'PolarDB IO read call count'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - read_count
+    query_ref: polardb_pg_io_info
+
+  - metric_name: polardb_pg_exporter_io_read_throughput
+    type: gauge
+    help: 'PolarDB IO read throughput'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - read_throughput
+    query_ref: polardb_pg_io_info
+
+  - metric_name: polardb_pg_exporter_io_read_latency_us
+    type: gauge
+    help: 'PolarDB IO read latency in microseconds'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - read_latency_us
+    query_ref: polardb_pg_io_info
+
+  - metric_name: polardb_pg_exporter_io_write_count
+    type: counter
+    help: 'PolarDB IO write call count'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - write_count
+    query_ref: polardb_pg_io_info
+
+  - metric_name: polardb_pg_exporter_io_write_throughput
+    type: gauge
+    help: 'PolarDB IO write throughput'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - write_throughput
+    query_ref: polardb_pg_io_info
+
+  - metric_name: polardb_pg_exporter_io_write_latency_us
+    type: gauge
+    help: 'PolarDB IO write latency in microseconds'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - write_latency_us
+    query_ref: polardb_pg_io_info
+
+  - metric_name: polardb_pg_exporter_io_fsync_count
+    type: counter
+    help: 'PolarDB IO fsync call count'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - fsync_count
+    query_ref: polardb_pg_io_info
+
+  - metric_name: polardb_pg_exporter_io_fsync_latency_us
+    type: gauge
+    help: 'PolarDB IO fsync latency in microseconds'
+    key_labels:
+      - fileloc
+      - filetype
+    values:
+      - fsync_latency_us
+    query_ref: polardb_pg_io_info
+
+  # 非累积的分桶计数（le 为字符串、各桶独立），故不用 _bucket/le 命名，
+  # 避免被 PromQL histogram_quantile 误当原生 histogram。
+  - metric_name: polardb_pg_exporter_io_latency_distribution
+    type: gauge
+    help: 'PolarDB IO latency distribution: per-bucket call count by storage location and IO kind'
+    key_labels:
+      - ioloc
+      - iokind
+      - latency_bucket
+    values:
+      - latency_count
+    query_ref: polardb_pg_io_latency
+
+  - metric_name: polardb_pg_exporter_process_cpu_user
+    type: gauge
+    help: 'PolarDB backend user CPU'
+    key_labels:
+      - backend_type
+    values:
+      - cpu_user
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_cpu_sys
+    type: gauge
+    help: 'PolarDB backend system CPU'
+    key_labels:
+      - backend_type
+    values:
+      - cpu_sys
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_rss
+    type: gauge
+    help: 'PolarDB backend RSS memory'
+    key_labels:
+      - backend_type
+    values:
+      - rss
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_pfs_read_ps
+    type: gauge
+    help: 'PolarDB backend PFS reads per second'
+    key_labels:
+      - backend_type
+    values:
+      - pfs_read_ps
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_pfs_read_throughput
+    type: gauge
+    help: 'PolarDB backend PFS read throughput'
+    key_labels:
+      - backend_type
+    values:
+      - pfs_read_throughput
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_pfs_read_latency_ms
+    type: gauge
+    help: 'PolarDB backend PFS read latency in milliseconds'
+    key_labels:
+      - backend_type
+    values:
+      - pfs_read_latency_ms
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_pfs_write_ps
+    type: gauge
+    help: 'PolarDB backend PFS writes per second'
+    key_labels:
+      - backend_type
+    values:
+      - pfs_write_ps
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_pfs_write_throughput
+    type: gauge
+    help: 'PolarDB backend PFS write throughput'
+    key_labels:
+      - backend_type
+    values:
+      - pfs_write_throughput
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_process_pfs_write_latency_ms
+    type: gauge
+    help: 'PolarDB backend PFS write latency in milliseconds'
+    key_labels:
+      - backend_type
+    values:
+      - pfs_write_latency_ms
+    query_ref: polardb_pg_process
+
+  - metric_name: polardb_pg_exporter_activity_wait_count
+    type: gauge
+    help: 'PolarDB active session wait count grouped by wait event and queryid'
+    key_labels:
+      - wait_event_type
+      - wait_event
+      - queryid
+    values:
+      - wait_count
+    # 用 queryid（compute_query_id 生成的有界哈希）做 label，避免把完整 SQL 文本
+    # 当 label 造成基数爆炸；queryid 可经 pg_stat_statements 反查具体语句。
+    query: |
+      SELECT
+        COALESCE(wait_event_type, 'CPU') AS wait_event_type,
+        COALESCE(wait_event, 'CPU') AS wait_event,
+        COALESCE(queryid::text, '') AS queryid,
+        COUNT(*)::float AS wait_count
+      FROM polar_stat_activity
+      WHERE state = 'active'
+        AND backend_type = 'client backend'
+      GROUP BY wait_event_type, wait_event, queryid
+
+  # ===========================================================================
+  # 通用 PostgreSQL 健康指标（标准 pg_* 视图，不依赖 polar_monitor，任意库可查）。
+  # 用于日常告警：连接饱和、事务/缓存、锁阻塞、容量、长事务、节点角色、运行时长。
+  # ===========================================================================
+
+  - metric_name: polardb_pg_exporter_connections
+    type: gauge
+    help: 'Backend connection count grouped by session state'
+    key_labels:
+      - state
+    values:
+      - connections
+    query: |
+      SELECT COALESCE(state, 'none') AS state, count(*)::float AS connections
+      FROM pg_stat_activity
+      GROUP BY state
+
+  - metric_name: polardb_pg_exporter_db_numbackends
+    type: gauge
+    help: 'Number of backends currently connected to the database'
+    key_labels:
+      - datname
+    values:
+      - numbackends
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_xact_commit_total
+    type: counter
+    help: 'Transactions committed in the database'
+    key_labels:
+      - datname
+    values:
+      - xact_commit
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_xact_rollback_total
+    type: counter
+    help: 'Transactions rolled back in the database'
+    key_labels:
+      - datname
+    values:
+      - xact_rollback
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_blks_read_total
+    type: counter
+    help: 'Disk blocks read in the database'
+    key_labels:
+      - datname
+    values:
+      - blks_read
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_blks_hit_total
+    type: counter
+    help: 'Buffer cache hits in the database (with blks_read derives cache hit ratio)'
+    key_labels:
+      - datname
+    values:
+      - blks_hit
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_tup_inserted_total
+    type: counter
+    help: 'Rows inserted by queries in the database'
+    key_labels:
+      - datname
+    values:
+      - tup_inserted
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_tup_updated_total
+    type: counter
+    help: 'Rows updated by queries in the database'
+    key_labels:
+      - datname
+    values:
+      - tup_updated
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_tup_deleted_total
+    type: counter
+    help: 'Rows deleted by queries in the database'
+    key_labels:
+      - datname
+    values:
+      - tup_deleted
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_deadlocks_total
+    type: counter
+    help: 'Deadlocks detected in the database'
+    key_labels:
+      - datname
+    values:
+      - deadlocks
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_temp_bytes_total
+    type: counter
+    help: 'Temporary file bytes written by queries in the database'
+    key_labels:
+      - datname
+    values:
+      - temp_bytes
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_conflicts_total
+    type: counter
+    help: 'Queries cancelled due to recovery conflicts in the database'
+    key_labels:
+      - datname
+    values:
+      - conflicts
+    query_ref: polardb_pg_database
+
+  - metric_name: polardb_pg_exporter_db_size_bytes
+    type: gauge
+    help: 'On-disk size of the database in bytes'
+    key_labels:
+      - datname
+    values:
+      - size_bytes
+    query: |
+      SELECT datname, pg_database_size(datname)::float AS size_bytes
+      FROM pg_database
+      WHERE datistemplate = false
+
+  - metric_name: polardb_pg_exporter_locks_count
+    type: gauge
+    help: 'Currently held locks grouped by lock mode'
+    key_labels:
+      - mode
+    values:
+      - locks
+    query: |
+      SELECT mode, count(*)::float AS locks
+      FROM pg_locks
+      GROUP BY mode
+
+  - metric_name: polardb_pg_exporter_locks_waiting_count
+    type: gauge
+    help: 'Number of lock requests waiting (not granted)'
+    values:
+      - locks_waiting
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_max_connections
+    type: gauge
+    help: 'Configured max_connections limit'
+    values:
+      - max_connections
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_in_recovery
+    type: gauge
+    help: 'Node role: 0 = read-write primary, 1 = standby/read-only in recovery'
+    values:
+      - in_recovery
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_uptime_seconds
+    type: gauge
+    help: 'Seconds since postmaster start'
+    values:
+      - uptime_seconds
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_longest_xact_seconds
+    type: gauge
+    help: 'Age in seconds of the longest-running open transaction'
+    values:
+      - longest_xact_seconds
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_longest_active_query_seconds
+    type: gauge
+    help: 'Age in seconds of the longest-running active query'
+    values:
+      - longest_active_query_seconds
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_max_xid_age
+    type: gauge
+    help: 'Largest transaction-id age across databases (approaching 2^31 risks wraparound shutdown)'
+    values:
+      - max_xid_age
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_max_mxid_age
+    type: gauge
+    help: 'Largest multixact-id age across databases (wraparound risk indicator)'
+    values:
+      - max_mxid_age
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_idle_in_transaction
+    type: gauge
+    help: 'Sessions in idle-in-transaction state (hold xmin, block vacuum)'
+    values:
+      - idle_in_xact
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_idle_in_transaction_aborted
+    type: gauge
+    help: 'Sessions in aborted idle-in-transaction state'
+    values:
+      - idle_in_xact_aborted
+    query_ref: polardb_pg_scalars
+
+  - metric_name: polardb_pg_exporter_checkpoints_timed_total
+    type: counter
+    help: 'Scheduled checkpoints executed'
+    values:
+      - checkpoints_timed
+    query_ref: polardb_pg_bgwriter
+
+  - metric_name: polardb_pg_exporter_checkpoints_req_total
+    type: counter
+    help: 'Requested (forced) checkpoints executed; high ratio vs timed indicates checkpoint pressure'
+    values:
+      - checkpoints_req
+    query_ref: polardb_pg_bgwriter
+
+  - metric_name: polardb_pg_exporter_checkpoint_write_time_total
+    type: counter
+    help: 'Total time spent writing checkpoint buffers to storage, in milliseconds'
+    values:
+      - checkpoint_write_time
+    query_ref: polardb_pg_bgwriter
+
+  - metric_name: polardb_pg_exporter_buffers_checkpoint_total
+    type: counter
+    help: 'Buffers written during checkpoints'
+    values:
+      - buffers_checkpoint
+    query_ref: polardb_pg_bgwriter
+
+  - metric_name: polardb_pg_exporter_buffers_clean_total
+    type: counter
+    help: 'Buffers written by the background writer'
+    values:
+      - buffers_clean
+    query_ref: polardb_pg_bgwriter
+
+  - metric_name: polardb_pg_exporter_buffers_backend_total
+    type: counter
+    help: 'Buffers written directly by a backend (high values indicate bgwriter cannot keep up)'
+    values:
+      - buffers_backend
+    query_ref: polardb_pg_bgwriter
+
+  - metric_name: polardb_pg_exporter_maxwritten_clean_total
+    type: counter
+    help: 'Times the background writer stopped a cleaning scan due to writing too many buffers'
+    values:
+      - maxwritten_clean
+    query_ref: polardb_pg_bgwriter
+
+  - metric_name: polardb_pg_exporter_wal_records_total
+    type: counter
+    help: 'WAL records generated'
+    values:
+      - wal_records
+    query_ref: polardb_pg_wal
+
+  - metric_name: polardb_pg_exporter_wal_fpi_total
+    type: counter
+    help: 'WAL full-page images generated'
+    values:
+      - wal_fpi
+    query_ref: polardb_pg_wal
+
+  - metric_name: polardb_pg_exporter_wal_bytes_total
+    type: counter
+    help: 'Total bytes of WAL generated'
+    values:
+      - wal_bytes
+    query_ref: polardb_pg_wal
+
+  - metric_name: polardb_pg_exporter_wal_buffers_full_total
+    type: counter
+    help: 'Times WAL data was flushed because WAL buffers were full (raise wal_buffers if high)'
+    values:
+      - wal_buffers_full
+    query_ref: polardb_pg_wal
+
+queries:
+  # 通用 PG：单次查询喂多个 per-database 指标。
+  - query_name: polardb_pg_database
+    query: |
+      SELECT
+        datname,
+        numbackends::float    AS numbackends,
+        xact_commit::float    AS xact_commit,
+        xact_rollback::float  AS xact_rollback,
+        blks_read::float      AS blks_read,
+        blks_hit::float       AS blks_hit,
+        tup_inserted::float   AS tup_inserted,
+        tup_updated::float    AS tup_updated,
+        tup_deleted::float    AS tup_deleted,
+        deadlocks::float      AS deadlocks,
+        temp_bytes::float     AS temp_bytes,
+        conflicts::float      AS conflicts
+      FROM pg_stat_database
+      WHERE datname IS NOT NULL
+        AND datname NOT IN ('template0', 'template1')
+
+  # 通用 PG：单行多列标量，喂多个全局健康指标。
+  - query_name: polardb_pg_scalars
+    query: |
+      SELECT
+        (SELECT setting::float FROM pg_settings WHERE name = 'max_connections') AS max_connections,
+        pg_is_in_recovery()::int::float AS in_recovery,
+        extract(epoch FROM now() - pg_postmaster_start_time())::float AS uptime_seconds,
+        (SELECT count(*)::float FROM pg_locks WHERE NOT granted) AS locks_waiting,
+        COALESCE((SELECT max(extract(epoch FROM now() - xact_start)) FROM pg_stat_activity WHERE state <> 'idle'), 0)::float AS longest_xact_seconds,
+        COALESCE((SELECT max(extract(epoch FROM now() - query_start)) FROM pg_stat_activity WHERE state = 'active'), 0)::float AS longest_active_query_seconds,
+        (SELECT max(age(datfrozenxid))::float FROM pg_database) AS max_xid_age,
+        (SELECT max(mxid_age(datminmxid))::float FROM pg_database) AS max_mxid_age,
+        (SELECT count(*) FILTER (WHERE state = 'idle in transaction')::float FROM pg_stat_activity) AS idle_in_xact,
+        (SELECT count(*) FILTER (WHERE state = 'idle in transaction (aborted)')::float FROM pg_stat_activity) AS idle_in_xact_aborted
+
+  # 通用 PG：checkpoint / bgwriter 写入健康。
+  - query_name: polardb_pg_bgwriter
+    query: |
+      SELECT
+        checkpoints_timed::float     AS checkpoints_timed,
+        checkpoints_req::float       AS checkpoints_req,
+        checkpoint_write_time::float AS checkpoint_write_time,
+        buffers_checkpoint::float    AS buffers_checkpoint,
+        buffers_clean::float         AS buffers_clean,
+        buffers_backend::float       AS buffers_backend,
+        maxwritten_clean::float      AS maxwritten_clean
+      FROM pg_stat_bgwriter
+
+  # 通用 PG：WAL 生成量（PG14 pg_stat_wal）。
+  - query_name: polardb_pg_wal
+    query: |
+      SELECT
+        wal_records::float      AS wal_records,
+        wal_fpi::float          AS wal_fpi,
+        wal_bytes::float        AS wal_bytes,
+        wal_buffers_full::float AS wal_buffers_full
+      FROM pg_stat_wal
+
+  - query_name: polardb_pg_io_info
+    query: |
+      SELECT
+        COALESCE(fileloc, '') AS fileloc,
+        COALESCE(filetype, '') AS filetype,
+        read_count,
+        read_throughput,
+        read_latency_us,
+        write_count,
+        write_throughput,
+        write_latency_us,
+        fsync_count,
+        fsync_latency_us
+      FROM polar_stat_io_info
+
+  - query_name: polardb_pg_io_latency
+    query: |
+      SELECT
+        COALESCE(ioloc, '') AS ioloc,
+        COALESCE(iokind, '') AS iokind,
+        bucket AS latency_bucket,
+        latency_count
+      FROM polar_stat_io_latency,
+      LATERAL (VALUES
+        ('200us', num_lessthan200us),
+        ('400us', num_lessthan400us),
+        ('600us', num_lessthan600us),
+        ('800us', num_lessthan800us),
+        ('1ms',   num_lessthan1ms),
+        ('10ms',  num_lessthan10ms),
+        ('100ms', num_lessthan100ms),
+        ('+Inf',  num_morethan100ms)
+      ) AS t(bucket, latency_count)
+
+  # polar_stat_process 在该 PolarDB 版本不存在，进程级 CPU/RSS/PFS 指标
+  # 改为按 backend_type 聚合 polar_stat_activity（pfs_* 映射到 shared 存储列）。
+  - query_name: polardb_pg_process
+    query: |
+      SELECT
+        COALESCE(backend_type, '') AS backend_type,
+        SUM(cpu_user)::float AS cpu_user,
+        SUM(cpu_sys)::float AS cpu_sys,
+        SUM(rss)::float AS rss,
+        SUM(shared_read_ps)::float AS pfs_read_ps,
+        SUM(shared_read_throughput)::float AS pfs_read_throughput,
+        AVG(shared_read_latency_ms)::float AS pfs_read_latency_ms,
+        SUM(shared_write_ps)::float AS pfs_write_ps,
+        SUM(shared_write_throughput)::float AS pfs_write_throughput,
+        AVG(shared_write_latency_ms)::float AS pfs_write_latency_ms
+      FROM polar_stat_activity
+      GROUP BY backend_type
