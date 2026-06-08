@@ -316,6 +316,14 @@ func buildDSN(dbType string) (string, string, error) {
 		return "mysql", buildMySQLDSN(), nil
 	case "postgres", "vastbase":
 		return "postgres", buildURLDSN("postgres", dbName, url.Values{"sslmode": {"disable"}}), nil
+	case "polardb_pg":
+		// PolarDB 的 polar_monitor 监控视图默认安装在 postgres 库；
+		// 未显式指定库名时回落到 postgres，避免连到不存在/无监控视图的库。
+		polarDB := dbName
+		if polarDB == "" {
+			polarDB = "postgres"
+		}
+		return "postgres", buildURLDSN("postgres", polarDB, url.Values{"sslmode": {"disable"}}), nil
 	case "opengauss":
 		return "opengauss", buildURLDSN("opengauss", dbName, url.Values{"sslmode": {"disable"}}), nil
 	case "oracle":

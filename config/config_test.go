@@ -88,3 +88,22 @@ func TestResolveCollectorRefs(t *testing.T) {
 		}
 	})
 }
+
+func TestLoadPolarDBPGCollectorFile(t *testing.T) {
+	c, err := Load("../polardb_pg.collector.yml")
+	if err != nil {
+		t.Fatalf("expected polardb pg collector to load, got error: %v", err)
+	}
+	if got := c.GetCollectorDBType(); got != "polardb_pg" {
+		t.Fatalf("expected collector db type polardb_pg, got %q", got)
+	}
+	if len(c.Collectors) != 1 {
+		t.Fatalf("expected one collector, got %d", len(c.Collectors))
+	}
+	if got := c.Collectors[0].Name; got != "polardb_pg_sql" {
+		t.Fatalf("expected collector name polardb_pg_sql, got %q", got)
+	}
+	if len(c.Collectors[0].Metrics) == 0 {
+		t.Fatal("expected polardb pg collector metrics")
+	}
+}
