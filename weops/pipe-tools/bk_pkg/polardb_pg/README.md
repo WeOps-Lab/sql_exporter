@@ -121,3 +121,8 @@ GRANT SELECT ON polar_stat_activity TO weops;
 | `polardb_pg_exporter_wal_fpi_total` | 生成的 WAL 全页镜像数 | 无 |
 | `polardb_pg_exporter_wal_bytes_total` | 生成的 WAL 字节数 | 无 |
 | `polardb_pg_exporter_wal_buffers_full_total` | 因 WAL 缓冲写满触发刷盘的次数 | 无 |
+
+### 版本日志
+
+#### weops_polardb_pg_exporter 1.1.2
+- 初始项目
