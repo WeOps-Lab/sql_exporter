@@ -111,6 +111,15 @@ metrics:
       - TABLESPACE_NAME
     query_ref: tablespace_query
 
+  - metric_name: dm_exporter_tablespace_max_used_ratio
+    type: gauge
+    help: '表空间扩展上限使用率(%)'
+    values:
+      - MAX_USED_RATIO
+    key_labels:
+      - TABLESPACE_NAME
+    query_ref: tablespace_max_query
+
   - metric_name: dm_exporter_checkpoint_dirty_pages
     type: gauge
     help: 'CheckPoint重做日志块'
@@ -339,6 +348,32 @@ queries:
           (SELECT tablespace_name, SUM(bytes) AS Size FROM dba_data_files GROUP BY tablespace_name) total
         WHERE
           free.tablespace_name = total.tablespace_name
+
+  - query_name: tablespace_max_query
+    query: |
+        SELECT
+          df.TABLESPACE_NAME AS TABLESPACE_NAME,
+          ROUND((df.TOTAL_SIZE_MB - NVL(fs.FREE_SIZE_MB, 0)) * 100 / NULLIF(df.MAX_SIZE_MB, 0), 2) AS MAX_USED_RATIO
+        FROM (
+          SELECT
+            TABLESPACE_NAME,
+            SUM(BYTES) / 1024 / 1024 AS TOTAL_SIZE_MB,
+            SUM(
+              DECODE(
+                AUTOEXTENSIBLE,
+                'YES', DECODE(SIGN(MAXBYTES - BYTES), 1, MAXBYTES, BYTES),
+                BYTES
+              )
+            ) / 1024 / 1024 AS MAX_SIZE_MB
+          FROM DBA_DATA_FILES
+          GROUP BY TABLESPACE_NAME
+        ) df
+        LEFT JOIN (
+          SELECT TABLESPACE_NAME, SUM(BYTES) / 1024 / 1024 AS FREE_SIZE_MB
+          FROM DBA_FREE_SPACE
+          GROUP BY TABLESPACE_NAME
+        ) fs
+          ON df.TABLESPACE_NAME = fs.TABLESPACE_NAME
 
   - query_name: roll_query
     query: |

@@ -74,7 +74,8 @@ GRANT SOI TO weops;
 | dm_exporter_session_rests            | 可用会话数           | -                                                        | -                         | -       |
 | dm_exporter_session_used_ratio       | 会话使用率           | -                                                        | -                         | percent |
 | dm_exporter_slow_query               | 超过2秒的慢查询        | -                                                        | -                         | -       |
-| dm_exporter_tablespace_used_ratio    | 表空间使用率          | TABLESPACE_NAME                                          | 表名称                       | percent |
+| dm_exporter_tablespace_used_ratio    | 表空间使用率          | TABLESPACE_NAME                                          | 表名称                     | percent |
+| dm_exporter_tablespace_max_used_ratio | 表空间扩展上限使用率     | TABLESPACE_NAME                                          | 表名称                     | percent |
 | dm_exporter_tablespace_used_size     | 表空间使用大小         | TABLESPACE_NAME                                          | 表名称                       | mb      |
 | dm_exporter_tablespace_free_size     | 表空间剩余大小         | TABLESPACE_NAME                                          | 表名称                       | mb      |
 | dm_exporter_deadlock_count           | 死锁累计数量          | -                                                        | -                         | -       |
@@ -106,6 +107,13 @@ GRANT SOI TO weops;
 
 
 注意: asm相关指标需要asm架构才能采集
+
+### 表空间使用率说明
+
+- `dm_exporter_tablespace_used_ratio`：已使用空间占当前已分配空间的百分比。
+- `dm_exporter_tablespace_max_used_ratio`：已使用空间占数据文件可扩展上限的百分比。数据文件启用自动扩展且 `MAXBYTES > BYTES` 时以 `MAXBYTES` 为上限，否则以当前文件大小 `BYTES` 为上限。
+- 表空间未启用自动扩展，或扩展上限不大于当前文件大小时，两项指标的计算分母相同，指标值也应相同（可能因计算精度存在微小差异）。
+- 扩展上限使用率不能替代当前表空间使用率和文件系统空间告警。配置告警前应确认 `MAXBYTES` 是真实可达到的有限容量，并同时检查数据库所在文件系统的可用空间。
 
 ### 版本日志
 
@@ -140,3 +148,6 @@ GRANT SOI TO weops;
 - 达梦连接在拼接 DSN 前，对密码执行 `url.PathEscape` 处理，修复 `/`、`?`、`#` 等特殊字符导致的认证失败问题
 - 达梦连接默认在 URL 中追加 `escapeProcess=true`，提升特殊字符密码场景的兼容性
 - 补充达梦特殊字符密码连接处理说明
+
+#### weops_dm_exporter v4.2.3
+- 新增 `dm_exporter_tablespace_max_used_ratio` 表空间扩展上限使用率指标；启用自动扩展且 `MAXBYTES > BYTES` 时以 `MAXBYTES` 为容量上限，否则以当前文件大小为容量上限
