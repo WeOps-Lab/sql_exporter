@@ -19,17 +19,16 @@
 登录数据库并执行命令创建蓝鲸监控账号和授权： 
 
 创建用户: weops 密码: Weops123!  
-```bash
+```sql
 CREATE USER weops IDENTIFIED BY "Weops123!";
-       
-GRANT USAGE ON TABLESPACE pg_global TO "weops";
+
 GRANT CREATE ON TABLESPACE pg_global TO "weops";
-             
+
 GRANT USAGE ON SCHEMA dbms_pipe TO "weops";
 GRANT SELECT ON ALL TABLES IN SCHEMA dbms_pipe TO "weops";
 
 GRANT USAGE ON SCHEMA dbe_pldeveloper TO "weops";
-                      
+
 GRANT SELECT ON pg_catalog.pg_authid TO "weops";
 
 GRANT USAGE ON SCHEMA dbe_perf TO "weops";
@@ -37,7 +36,6 @@ GRANT SELECT ON ALL TABLES IN SCHEMA dbe_perf TO "weops";
 
 GRANT USAGE ON SCHEMA sys TO "weops";
 GRANT SELECT ON ALL TABLES IN SCHEMA sys TO "weops";
-
 ```
 
 ### 参数说明
