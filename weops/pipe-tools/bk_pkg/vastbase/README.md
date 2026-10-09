@@ -124,10 +124,6 @@ GRANT SELECT ON ALL TABLES IN SCHEMA sys TO "weops";
 
 ### 版本日志
 
-#### weops_vastbaseG100_exporter 4.2.2
-- 修复表/索引膨胀相关 SQL（`table_query` / `index_query`）在 collector YAML 中的字符串引号，消除 `syntax error at or near "0"`
-- 大表大小指标排除 `sys`、`dbe_perf` 等系统 schema，避免无权限时报 `permission denied for schema sys`
-
 #### weops_vastbaseG100_exporter 1.1.6
 - weops调整
 
@@ -137,3 +133,7 @@ GRANT SELECT ON ALL TABLES IN SCHEMA sys TO "weops";
 
 #### weops_vastbaseG100_exporter 4.2.1
 - 补充 `SQL_EXPORTER_DB_NAME` 参数说明
+
+#### weops_vastbaseG100_exporter 4.2.2
+- 修复表/索引膨胀相关 SQL（`table_query` / `index_query`）在 collector YAML 中的字符串引号，消除 `syntax error at or near "0"`
+- 大表大小指标排除 `sys`、`dbe_perf` 等系统 schema，避免无权限时报 `permission denied for schema sys`
