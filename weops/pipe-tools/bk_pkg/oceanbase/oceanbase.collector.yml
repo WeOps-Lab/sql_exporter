@@ -176,13 +176,34 @@ metrics:
     values: [memory_usage_percent]
     query_ref: ob_sysstat
 
-  # CPU 统计
+  # CPU 调度统计。140006 是原始调度值，不是使用率。
   - metric_name: oceanbase_sysstat_cpu_usage
     type: gauge
-    help: 'CPU使用率(%)'
+    help: '租户 CPU 调度统计原始值(stat_id=140006, 非百分比)'
     key_labels: [tenant_id]
     values: [cpu_usage]
     query_ref: ob_sysstat
+
+  - metric_name: oceanbase_sysstat_cpu_usage_equivalent_cores
+    type: gauge
+    help: '租户已用 CPU 等效核数'
+    key_labels: [tenant_id, svr_ip, svr_port]
+    values: [cpu_usage_equivalent_cores]
+    query_ref: ob_sysstat_cpu
+
+  - metric_name: oceanbase_sysstat_cpu_quota_cores
+    type: gauge
+    help: '租户 CPU 配额核数'
+    key_labels: [tenant_id, svr_ip, svr_port]
+    values: [cpu_quota_cores]
+    query_ref: ob_sysstat_cpu
+
+  - metric_name: oceanbase_sysstat_tenant_thread_usage_percent
+    type: gauge
+    help: '租户线程 CPU 使用率(%)'
+    key_labels: [tenant_id, svr_ip, svr_port]
+    values: [tenant_thread_usage_percent]
+    query_ref: ob_sysstat_cpu
 
   # OceanBase server status  
   - metric_name: oceanbase_server_status 
@@ -436,6 +457,24 @@ queries:
       WHERE stat_id IN (40000,40001,40002,40003,40006,40007,40008,40009,30007,30009,30011,50008,50009,60000,60002,60003,60005,130000,130001,130004,140002,140003,140006)
       AND (con_id > 1000 OR con_id = 1)
       GROUP BY con_id
+
+  # 租户线程 CPU。官方口径：100 * sum(140006) / sum(140005)。
+  # 140006 为已用调度单位，140005 为最大可用调度单位；除以 100 得到核数。
+  # 配额缺失或非正数的行跳过，使用量为 0 时仍保留 0% 使用率，不把超过 100% 的结果截断。
+  - query_name: ob_sysstat_cpu
+    query: |
+      SELECT con_id AS tenant_id,
+        svr_ip,
+        svr_port,
+        SUM(CASE WHEN stat_id = 140006 THEN value END) / 100.0 AS cpu_usage_equivalent_cores,
+        SUM(CASE WHEN stat_id = 140005 THEN value END) / 100.0 AS cpu_quota_cores,
+        SUM(CASE WHEN stat_id = 140006 THEN value END) * 100.0 / NULLIF(SUM(CASE WHEN stat_id = 140005 THEN value END), 0) AS tenant_thread_usage_percent
+      FROM oceanbase.GV$SYSSTAT
+      WHERE stat_id IN (140005, 140006)
+        AND (con_id > 1000 OR con_id = 1)
+      GROUP BY con_id, svr_ip, svr_port
+      HAVING SUM(CASE WHEN stat_id = 140005 THEN value END) > 0
+        AND SUM(CASE WHEN stat_id = 140006 THEN value END) IS NOT NULL
 
   # Server status query
   - query_name: ob_server 
