@@ -100,6 +100,7 @@ SHOW VARIABLES LIKE 'ob_compatibility_mode';
 SELECT COUNT(*) FROM DBA_OB_SERVERS;
 SELECT COUNT(*) FROM DBA_OB_TENANTS;
 SELECT COUNT(*) FROM v$sysstat;
+SELECT COUNT(*) FROM oceanbase.GV$SYSSTAT WHERE stat_id IN (140005, 140006);
 ```
 
 只有兼容模式返回 `MYSQL`，并且上述查询均成功时，才能将该账号配置到插件。
@@ -242,6 +243,7 @@ SELECT COUNT(*) FROM DBA_OB_SERVERS;
 SELECT COUNT(*) FROM DBA_OB_TENANTS;
 SELECT COUNT(*) FROM GV$OB_SERVERS;
 SELECT COUNT(*) FROM v$sysstat;
+SELECT COUNT(*) FROM oceanbase.GV$SYSSTAT WHERE stat_id IN (140005, 140006);
 ```
 
 ##### 6.7 配置插件
@@ -275,7 +277,8 @@ SELECT COUNT(*) FROM v$sysstat;
 | GV$OB_MEMSTORE           | 获取内存存储信息             |
 | GV$OB_MEMORY             | 获取内存使用信息             |
 | V$OB_PLAN_CACHE_STAT     | 获取计划缓存统计             |
-| v$sysstat                | 获取系统统计信息（CPU/内存/IO等） |
+| v$sysstat                | 获取系统统计信息（内存/IO，以及 CPU 调度原始值） |
+| oceanbase.GV$SYSSTAT     | 获取各节点租户 CPU 调度统计（使用率与核数） |
 | v$system_event           | 获取系统等待事件信息           |
 | gv$ob_units / v$ob_units | 获取资源单元信息             |
 | dba_ob_units             | 获取资源单元配置             |
@@ -307,7 +310,10 @@ SELECT COUNT(*) FROM v$sysstat;
 | oceanbase_server_memory_total             | OceanBase服务器内存总量    | -                      | -          | bytes   | gauge    |
 | oceanbase_sysstat_active_memstore_used    | 活跃Memstore使用量       | tenant_id              | 租户ID       | bytes   | gauge    |
 | oceanbase_sysstat_block_cache_hit_percent | 块缓存命中率              | tenant_id              | 租户ID       | percent | gauge    |
-| oceanbase_sysstat_cpu_usage               | CPU使用率              | tenant_id              | 租户ID       | percent | gauge    |
+| oceanbase_sysstat_cpu_usage               | 租户CPU调度统计原始值       | tenant_id              | 租户ID       | 调度单位    | gauge    |
+| oceanbase_sysstat_cpu_usage_equivalent_cores | 租户已用CPU等效核数     | tenant_id, svr_ip, svr_port | 租户ID, 服务IP, 服务端口 | cores   | gauge    |
+| oceanbase_sysstat_cpu_quota_cores         | 租户CPU配额核数          | tenant_id, svr_ip, svr_port | 租户ID, 服务IP, 服务端口 | cores   | gauge    |
+| oceanbase_sysstat_tenant_thread_usage_percent | 租户线程CPU使用率     | tenant_id, svr_ip, svr_port | 租户ID, 服务IP, 服务端口 | percent | gauge    |
 | oceanbase_sysstat_io_read                 | IO读取次数              | tenant_id              | 租户ID       | -       | counter  |
 | oceanbase_sysstat_io_read_bytes           | IO读取字节数             | tenant_id              | 租户ID       | bytes   | counter  |
 | oceanbase_sysstat_io_write                | IO写入次数              | tenant_id              | 租户ID       | -       | counter  |
@@ -351,3 +357,8 @@ SELECT COUNT(*) FROM v$sysstat;
 
 #### weops_oceanbase_exporter v4.2.2
 - 补充 OceanBase `Oracle` 业务租户场景的监控指引，包括 `sys` 监控账号方案、独立 MySQL 模式监控租户创建步骤、连接格式、权限验证和常见报错处理
+
+#### CPU 指标口径
+- `oceanbase_sysstat_cpu_usage` 是租户 CPU 调度统计原始值（stat_id=140006），不是使用率
+- `oceanbase_sysstat_tenant_thread_usage_percent` 按 `100 * 140006 / 140005` 计算租户线程 CPU 使用率
+- `oceanbase_sysstat_cpu_usage_equivalent_cores`、`oceanbase_sysstat_cpu_quota_cores` 分别是已用核数和配额核数（统计值 / 100）
